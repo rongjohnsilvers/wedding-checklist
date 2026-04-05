@@ -333,6 +333,15 @@
 
     .task-name { font-weight: 500; }
     .task-meta { font-size: 11px; color: var(--text2); margin-top: 2px; }
+
+    /* Assignee badges */
+    .ab { display:inline-flex; align-items:center; gap:3px; font-size:11px; font-weight:600; padding:2px 7px; border-radius:10px; white-space:nowrap; }
+    .ab-john  { background:#e8eaf6; color:#3949ab; }
+    .ab-yoon  { background:#fce4ec; color:#c2185b; }
+    .ab-other { background:#e0f2f1; color:#00695c; }
+    [data-theme="dark"] .ab-john  { background:#1e2240; color:#9fa8da; }
+    [data-theme="dark"] .ab-yoon  { background:#2d1225; color:#f48fb1; }
+    [data-theme="dark"] .ab-other { background:#0d2420; color:#80cbc4; }
     .date-label { white-space: nowrap; font-size: 12px; }
     .date-wd { font-size: 10px; color: var(--text2); }
 
@@ -512,6 +521,11 @@
         <option value="Medium" selected>Medium</option>
         <option value="Low">Low</option>
       </select>
+      <select id="qa-assignee">
+        <option value="">Unassigned</option>
+        <option value="John">John</option>
+        <option value="Yoon">Yoon</option>
+      </select>
       <input type="date" id="qa-date">
       <button class="btn btn-primary btn-sm" id="btn-qa-add">Add Task</button>
     </div>
@@ -540,6 +554,10 @@
       </div>
       <div class="fg">
         <label><input type="checkbox" id="f-overdue" style="accent-color:var(--high)"> Overdue</label>
+      </div>
+      <div class="fg">
+        <label>Assigned</label>
+        <select id="f-assignee"><option value="">Everyone</option><option value="__unassigned__">Unassigned</option><option value="John">John</option><option value="Yoon">Yoon</option></select>
       </div>
       <div class="fg">
         <label>Sort</label>
@@ -615,8 +633,12 @@
       </div>
     </div>
     <div class="form-group">
-      <label>Delegated To</label>
-      <input type="text" id="m-delegated">
+      <label>Assigned To</label>
+      <input type="text" id="m-delegated" list="assignee-list" placeholder="John, Yoon, or type a name…" autocomplete="off">
+      <datalist id="assignee-list">
+        <option value="John">
+        <option value="Yoon">
+      </datalist>
     </div>
     <div class="form-group">
       <label>Notes</label>
@@ -810,7 +832,7 @@ const SEED_TASKS = [
 let tasks = [];
 let editingId = null;
 
-let filters = { project:"", status:"", priority:"", date:"", rolledOnly:false, overdueOnly:false };
+let filters = { project:"", status:"", priority:"", date:"", rolledOnly:false, overdueOnly:false, assignee:"" };
 let sortCfg  = { field:"date", dir:"asc" };
 
 function loadTasks() {
@@ -933,6 +955,7 @@ function renderAll() {
   renderCards();
   renderTodayFocus();
   renderCal();
+  renderAssigneeFilter();
   renderTable();
 }
 
@@ -1033,6 +1056,8 @@ function renderTable() {
   if (filters.date)      rows = rows.filter(t=>t.date===filters.date);
   if (filters.rolledOnly)  rows = rows.filter(t=>t.rolledOverCount>0);
   if (filters.overdueOnly) rows = rows.filter(t=>!t.completed && t.date<today);
+  if (filters.assignee === "__unassigned__") rows = rows.filter(t=>!t.delegatedTo);
+  else if (filters.assignee) rows = rows.filter(t=>t.delegatedTo===filters.assignee);
 
   rows.sort((a,b)=>{
     let av,bv;
@@ -1085,7 +1110,7 @@ function renderTable() {
     if(overdue)         nameHtml+=`<span class="mini-badge mb-overdue">⚠ overdue</span>`;
     if(isToday && !done) nameHtml+=`<span class="mini-badge mb-today">today</span>`;
     if(t.niceToHave)    nameHtml+=` <span style="font-size:10px;color:var(--text2)">✨</span>`;
-    if(t.delegatedTo)   nameHtml+=`<div class="task-meta">👤 ${esc(t.delegatedTo)}</div>`;
+    if(t.delegatedTo)   nameHtml+=`<div style="margin-top:3px">${assigneeBadge(t.delegatedTo)}</div>`;
     if(t.notes)         nameHtml+=`<div class="task-meta">${esc(t.notes)}</div>`;
 
     return `<tr class="${rowCls}" data-id="${t.id}">
@@ -1103,6 +1128,36 @@ function renderTable() {
 }
 
 function pIcon(p){ return p==="High"?"🔴":p==="Medium"?"🟡":"🟢"; }
+
+function assigneeBadge(name) {
+  if(!name) return "";
+  const cls = name==="John" ? "ab-john" : name==="Yoon" ? "ab-yoon" : "ab-other";
+  const icon = name==="John" ? "👤" : name==="Yoon" ? "👤" : "👥";
+  return `<span class="ab ${cls}">${icon} ${esc(name)}</span>`;
+}
+
+// Populate the assignee filter with any custom delegate names found in tasks
+function renderAssigneeFilter() {
+  const sel = document.getElementById("f-assignee");
+  const known = new Set(["", "__unassigned__", "John", "Yoon"]);
+  const extras = [...new Set(tasks.map(t=>t.delegatedTo).filter(n=>n && !known.has(n)))].sort();
+  // Remove old extras (keep first 4 fixed options)
+  while(sel.options.length > 4) sel.remove(4);
+  extras.forEach(name => {
+    const opt = document.createElement("option");
+    opt.value = name; opt.textContent = name;
+    sel.appendChild(opt);
+  });
+  // Also update datalist
+  const dl = document.getElementById("assignee-list");
+  const dlKnown = new Set(["John","Yoon"]);
+  extras.forEach(name => {
+    if(!dlKnown.has(name)){
+      const opt = document.createElement("option");
+      opt.value = name; dl.appendChild(opt);
+    }
+  });
+}
 
 // ==============================================================
 // SECTION 7: INTERACTIONS
@@ -1238,10 +1293,11 @@ function quickAdd() {
   tasks.push({
     id:uid(), date, originalDate:date,
     task:name, category:"Misc",
-    project:  document.getElementById("qa-project").value,
-    priority: document.getElementById("qa-priority").value,
+    project:     document.getElementById("qa-project").value,
+    priority:    document.getElementById("qa-priority").value,
+    delegatedTo: document.getElementById("qa-assignee").value,
     status:"Not started", effort:"30m",
-    delegatedTo:"", notes:"",
+    notes:"",
     lightweight:false, niceToHave:false, completed:false, rolledOverCount:0
   });
   saveTasks();
@@ -1256,10 +1312,11 @@ function quickAdd() {
 function bindAll() {
   // Filters
   const fmap = {
-    "f-project":  v=>{ filters.project=v; renderTable(); renderCal(); },
-    "f-status":   v=>{ filters.status=v;  renderTable(); },
-    "f-priority": v=>{ filters.priority=v;renderTable(); },
-    "f-date":     v=>{ filters.date=v;    renderTable(); renderCal(); },
+    "f-project":  v=>{ filters.project=v;  renderTable(); renderCal(); },
+    "f-status":   v=>{ filters.status=v;   renderTable(); },
+    "f-priority": v=>{ filters.priority=v; renderTable(); },
+    "f-date":     v=>{ filters.date=v;     renderTable(); renderCal(); },
+    "f-assignee": v=>{ filters.assignee=v; renderTable(); },
   };
   Object.entries(fmap).forEach(([id,fn])=>{
     document.getElementById(id).addEventListener("change", e=>fn(e.target.value));
@@ -1273,8 +1330,8 @@ function bindAll() {
     filters.date=""; document.getElementById("f-date").value=""; renderTable(); renderCal();
   });
   document.getElementById("btn-clear-filters").addEventListener("click", ()=>{
-    filters={project:"",status:"",priority:"",date:"",rolledOnly:false,overdueOnly:false};
-    ["f-project","f-status","f-priority","f-date"].forEach(id=>document.getElementById(id).value="");
+    filters={project:"",status:"",priority:"",date:"",rolledOnly:false,overdueOnly:false,assignee:""};
+    ["f-project","f-status","f-priority","f-date","f-assignee"].forEach(id=>document.getElementById(id).value="");
     document.getElementById("f-rolled").checked=false;
     document.getElementById("f-overdue").checked=false;
     renderTable(); renderCal();
