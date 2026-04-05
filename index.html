@@ -459,9 +459,90 @@
     ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
     ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 
+    /* ==============================================================
+       VIEW TABS
+    ============================================================== */
+    .view-tabs {
+      display: flex;
+      gap: 4px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 5px 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .view-tabs .vt-label { font-size: 11px; color: var(--text2); margin-right: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; }
+    .vt {
+      padding: 4px 12px;
+      border-radius: 5px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--text2);
+      cursor: pointer;
+      font-size: 12px;
+      font-family: var(--font);
+      transition: all 0.12s;
+    }
+    .vt:hover { background: var(--accent-light); color: var(--accent); }
+    .vt.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+    /* ==============================================================
+       BULK EDIT TOOLBAR
+    ============================================================== */
+    .bulk-bar {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 500;
+      background: var(--surface);
+      border: 2px solid var(--accent);
+      border-radius: 10px;
+      padding: 10px 14px;
+      display: none;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      box-shadow: var(--shadow-md);
+      max-width: 90vw;
+    }
+    .bulk-bar.visible { display: flex; }
+    .bulk-count { font-size: 13px; font-weight: 700; color: var(--accent); white-space: nowrap; margin-right: 4px; }
+    .bulk-sep { width: 1px; height: 22px; background: var(--border); }
+
+    /* ==============================================================
+       SELECTED ROW
+    ============================================================== */
+    tr.row-selected td { background: var(--accent-light) !important; outline: 2px solid var(--accent); outline-offset: -1px; }
+
+    /* ==============================================================
+       GROUP HEADER ROW (grouped views)
+    ============================================================== */
+    .group-header-row td {
+      background: var(--surface2);
+      font-weight: 700;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text2);
+      padding: 8px 12px;
+      cursor: pointer;
+      user-select: none;
+      border-bottom: 2px solid var(--border);
+    }
+    .group-header-row:hover td { background: var(--accent-light); color: var(--accent); }
+    .group-header-row .gh-toggle { font-size: 10px; margin-right: 6px; display: inline-block; transition: transform 0.15s; }
+    .group-header-row.collapsed .gh-toggle { transform: rotate(-90deg); }
+    .group-header-row .gh-stats { font-size: 11px; font-weight: 400; color: var(--text2); margin-left: 8px; }
+    .group-header-row .gh-done-btn { float:right; font-size:11px; padding:1px 7px; border-radius:4px; border:1px solid var(--border); background:var(--surface); color:var(--text2); cursor:pointer; }
+    .group-header-row .gh-done-btn:hover { background:var(--low); color:#fff; border-color:var(--low); }
+
+    tr.group-hidden { display: none; }
+
     @media print {
       .app-header, .sidebar, .controls-bar, .quick-add-bar,
-      .header-actions, .today-focus, .edit-btn { display: none !important; }
+      .header-actions, .today-focus, .edit-btn, .bulk-bar, .view-tabs { display: none !important; }
       .main-layout { display: block; height: auto; }
       .main-content { overflow: visible; padding: 0; }
       .table-wrapper { box-shadow: none; }
@@ -567,11 +648,21 @@
       <button class="btn btn-sm" id="btn-clear-filters">Clear Filters</button>
     </div>
 
+    <!-- View tabs -->
+    <div class="view-tabs">
+      <span class="vt-label">View</span>
+      <button class="vt active" data-view="table">📋 Table</button>
+      <button class="vt" data-view="category">📁 By Category</button>
+      <button class="vt" data-view="assignee">👤 By Assignee</button>
+      <button class="vt" data-view="priority">🎯 By Priority</button>
+    </div>
+
     <!-- Task table -->
     <div class="table-wrapper">
       <table id="task-table">
         <thead>
           <tr>
+            <th style="width:28px;text-align:center"><input type="checkbox" id="th-select-all" title="Select all" style="accent-color:var(--accent)"></th>
             <th style="width:32px">✓</th>
             <th data-sort="date">Date</th>
             <th data-sort="task">Task</th>
@@ -666,6 +757,39 @@
       <button class="btn btn-primary" id="m-save">Save</button>
     </div>
   </div>
+</div>
+
+<!-- ============================================================
+     BULK EDIT TOOLBAR
+============================================================ -->
+<div class="bulk-bar" id="bulk-bar">
+  <span class="bulk-count" id="bulk-count">0 selected</span>
+  <div class="bulk-sep"></div>
+  <select id="bulk-status" title="Set status">
+    <option value="">— Status —</option>
+    <option value="Not started">Not started</option>
+    <option value="In progress">In progress</option>
+    <option value="Done">Done</option>
+  </select>
+  <select id="bulk-priority" title="Set priority">
+    <option value="">— Priority —</option>
+    <option value="High">High</option>
+    <option value="Medium">Medium</option>
+    <option value="Low">Low</option>
+  </select>
+  <select id="bulk-project" title="Set project">
+    <option value="">— Project —</option>
+    <option value="Wedding">Wedding</option>
+    <option value="Moving">Moving</option>
+    <option value="Both">Both</option>
+  </select>
+  <input type="text" id="bulk-assignee" list="assignee-list" placeholder="— Assignee —" style="width:110px" autocomplete="off">
+  <input type="date" id="bulk-date" title="Reschedule to date" style="width:130px">
+  <div class="bulk-sep"></div>
+  <button class="btn btn-primary btn-sm" id="btn-bulk-apply">Apply</button>
+  <button class="btn btn-sm" id="btn-bulk-done">✓ Mark Done</button>
+  <button class="btn btn-danger btn-sm" id="btn-bulk-delete">🗑 Delete</button>
+  <button class="btn btn-sm" id="btn-bulk-deselect">✕ Deselect all</button>
 </div>
 
 <script>
@@ -835,6 +959,13 @@ let editingId = null;
 let filters = { project:"", status:"", priority:"", date:"", rolledOnly:false, overdueOnly:false, assignee:"" };
 let sortCfg  = { field:"date", dir:"asc" };
 
+// Multi-select state
+let selectedIds = new Set();
+
+// Grouped view state
+let currentView    = "table";   // "table" | "category" | "assignee" | "priority"
+let collapsedGroups = new Set(); // which group keys are collapsed
+
 function loadTasks() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -956,7 +1087,7 @@ function renderAll() {
   renderTodayFocus();
   renderCal();
   renderAssigneeFilter();
-  renderTable();
+  renderCurrentView();
 }
 
 // ── Summary cards ──────────────────────────────────────────────
@@ -1085,46 +1216,283 @@ function renderTable() {
 
   const tbody = document.getElementById("task-tbody");
   if (!rows.length) {
-    tbody.innerHTML=`<tr><td colspan="9" class="empty-state">No tasks match the current filters.</td></tr>`;
+    tbody.innerHTML=`<tr><td colspan="10" class="empty-state">No tasks match the current filters.</td></tr>`;
+    updateSelectAll();
     return;
   }
 
-  tbody.innerHTML = rows.map(t=>{
-    const isToday  = t.date===today;
-    const overdue  = !t.completed && t.date<today;
-    const rolled   = t.rolledOverCount>0;
-    const done     = t.completed;
+  tbody.innerHTML = rows.map(t => taskRow(t, today)).join("");
+  updateSelectAll();
+}
 
-    let rowCls = "";
-    if(done)        rowCls="row-done";
+// ==============================================================
+// SECTION 6B: SHARED ROW BUILDER
+// ==============================================================
+
+function taskRow(t, today) {
+  const isToday = t.date===today;
+  const overdue = !t.completed && t.date<today;
+  const rolled  = t.rolledOverCount>0;
+  const done    = t.completed;
+  const sel     = selectedIds.has(t.id);
+
+  let rowCls = sel ? "row-selected" : "";
+  if(!sel){
+    if(done)         rowCls="row-done";
     else if(overdue) rowCls="row-overdue";
     else if(rolled)  rowCls="row-rolled";
     else if(isToday) rowCls="row-today";
+  }
 
-    const projCls  = "badge badge-"+t.project.toLowerCase().replace(/ /g,"");
-    const prioCls  = "badge badge-"+t.priority.toLowerCase();
-    const statCls  = "badge badge-"+t.status.toLowerCase().replace(/ /g,"");
+  const projCls = "badge badge-"+t.project.toLowerCase().replace(/ /g,"");
+  const prioCls = "badge badge-"+t.priority.toLowerCase();
+  const statCls = "badge badge-"+t.status.toLowerCase().replace(/ /g,"");
 
-    let nameHtml = `<span class="task-name">${esc(t.task)}</span>`;
-    if(rolled && !done) nameHtml+=`<span class="mini-badge mb-rolled">↩ ${fmt(t.originalDate)}</span>`;
-    if(overdue)         nameHtml+=`<span class="mini-badge mb-overdue">⚠ overdue</span>`;
-    if(isToday && !done) nameHtml+=`<span class="mini-badge mb-today">today</span>`;
-    if(t.niceToHave)    nameHtml+=` <span style="font-size:10px;color:var(--text2)">✨</span>`;
-    if(t.delegatedTo)   nameHtml+=`<div style="margin-top:3px">${assigneeBadge(t.delegatedTo)}</div>`;
-    if(t.notes)         nameHtml+=`<div class="task-meta">${esc(t.notes)}</div>`;
+  let nameHtml = `<span class="task-name">${esc(t.task)}</span>`;
+  if(rolled && !done) nameHtml+=`<span class="mini-badge mb-rolled">↩ ${fmt(t.originalDate)}</span>`;
+  if(overdue)         nameHtml+=`<span class="mini-badge mb-overdue">⚠ overdue</span>`;
+  if(isToday && !done) nameHtml+=`<span class="mini-badge mb-today">today</span>`;
+  if(t.niceToHave)    nameHtml+=` <span style="font-size:10px;color:var(--text2)">✨</span>`;
+  if(t.delegatedTo)   nameHtml+=`<div style="margin-top:3px">${assigneeBadge(t.delegatedTo)}</div>`;
+  if(t.notes)         nameHtml+=`<div class="task-meta">${esc(t.notes)}</div>`;
 
-    return `<tr class="${rowCls}" data-id="${t.id}">
-      <td style="text-align:center"><input type="checkbox" ${done?"checked":""} onchange="toggleTask('${t.id}',this.checked)" style="accent-color:var(--accent)"></td>
-      <td class="date-label">${fmt(t.date)}<br><span class="date-wd">${weekday(t.date)}</span></td>
-      <td>${nameHtml}</td>
-      <td style="font-size:11px;color:var(--text2);white-space:nowrap">${esc(t.category)}</td>
-      <td><span class="${projCls}">${t.project}</span></td>
-      <td><span class="${prioCls}">${pIcon(t.priority)} ${t.priority}</span></td>
-      <td><span class="${statCls}">${t.status}</span></td>
-      <td><span class="effort-pill">${t.effort}</span></td>
-      <td><button class="btn btn-sm edit-btn" onclick="openModal('${t.id}')">Edit</button></td>
+  return `<tr class="${rowCls}" data-id="${t.id}">
+    <td style="text-align:center"><input type="checkbox" class="sel-cb" ${sel?"checked":""} onchange="toggleSelect('${t.id}',this.checked)" style="accent-color:var(--accent)"></td>
+    <td style="text-align:center"><input type="checkbox" ${done?"checked":""} onchange="toggleTask('${t.id}',this.checked)" style="accent-color:var(--accent)"></td>
+    <td class="date-label">${fmt(t.date)}<br><span class="date-wd">${weekday(t.date)}</span></td>
+    <td>${nameHtml}</td>
+    <td style="font-size:11px;color:var(--text2);white-space:nowrap">${esc(t.category)}</td>
+    <td><span class="${projCls}">${t.project}</span></td>
+    <td><span class="${prioCls}">${pIcon(t.priority)} ${t.priority}</span></td>
+    <td><span class="${statCls}">${t.status}</span></td>
+    <td><span class="effort-pill">${t.effort}</span></td>
+    <td><button class="btn btn-sm edit-btn" onclick="openModal('${t.id}')">Edit</button></td>
+  </tr>`;
+}
+
+// ==============================================================
+// SECTION 6C: VIEW SWITCHER
+// ==============================================================
+
+function renderCurrentView() {
+  if(currentView === "table") {
+    renderTable();
+  } else {
+    const groupKey = currentView; // "category" | "assignee" | "priority"
+    renderGroupedView(groupKey);
+  }
+}
+
+function setView(view) {
+  currentView = view;
+  document.querySelectorAll(".vt").forEach(b => b.classList.toggle("active", b.dataset.view===view));
+  // Show sort controls only in table view
+  document.getElementById("s-field").parentElement.style.display = view==="table" ? "" : "none";
+  renderCurrentView();
+}
+
+// ==============================================================
+// SECTION 6D: GROUPED VIEW
+// ==============================================================
+
+function renderGroupedView(groupKey) {
+  const today = APP_TODAY;
+
+  // Apply same filters as table view
+  let rows = [...tasks];
+  if(filters.project)   rows = rows.filter(t=>t.project===filters.project);
+  if(filters.status)    rows = rows.filter(t=>t.status===filters.status);
+  if(filters.priority)  rows = rows.filter(t=>t.priority===filters.priority);
+  if(filters.date)      rows = rows.filter(t=>t.date===filters.date);
+  if(filters.rolledOnly)  rows = rows.filter(t=>t.rolledOverCount>0);
+  if(filters.overdueOnly) rows = rows.filter(t=>!t.completed && t.date<today);
+  if(filters.assignee==="__unassigned__") rows = rows.filter(t=>!t.delegatedTo);
+  else if(filters.assignee) rows = rows.filter(t=>t.delegatedTo===filters.assignee);
+
+  // Sort within groups by date then priority
+  rows.sort((a,b)=>{
+    if(a.date<b.date) return -1; if(a.date>b.date) return 1;
+    return PRIORITY_ORDER[a.priority]-PRIORITY_ORDER[b.priority];
+  });
+
+  // Extract group key value from each task
+  function groupVal(t) {
+    if(groupKey==="category") return t.category || "Uncategorized";
+    if(groupKey==="assignee") return t.delegatedTo || "Unassigned";
+    if(groupKey==="priority") return t.priority;
+    return "—";
+  }
+
+  // Build ordered groups
+  const groupOrder = groupKey==="priority"
+    ? ["High","Medium","Low"]
+    : [...new Set(rows.map(groupVal))].sort();
+
+  const grouped = {};
+  rows.forEach(t => {
+    const k = groupVal(t);
+    if(!grouped[k]) grouped[k] = [];
+    grouped[k].push(t);
+  });
+
+  // Render into the same table
+  const tbody = document.getElementById("task-tbody");
+  if(!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="10" class="empty-state">No tasks match the current filters.</td></tr>`;
+    updateSelectAll();
+    return;
+  }
+
+  let html = "";
+  const keys = groupKey==="priority" ? groupOrder.filter(k=>grouped[k]) : Object.keys(grouped).sort();
+
+  keys.forEach(key => {
+    const group = grouped[key] || [];
+    if(!group.length) return;
+    const done  = group.filter(t=>t.completed).length;
+    const total = group.length;
+    const collapsed = collapsedGroups.has(key);
+    const hidCls = collapsed ? "group-hidden" : "";
+
+    // Group header row
+    let headerAccent = "";
+    if(groupKey==="priority") {
+      headerAccent = key==="High"  ? "border-left:3px solid var(--high)"
+                   : key==="Medium"? "border-left:3px solid var(--medium)"
+                   :                 "border-left:3px solid var(--low)";
+    } else if(groupKey==="assignee") {
+      const cls = key==="John"?"--accent:#3949ab":key==="Yoon"?"--accent:#c2185b":"--accent:#00695c";
+    }
+
+    html += `<tr class="group-header-row${collapsed?" collapsed":""}" onclick="toggleGroup('${esc(key)}')">
+      <td colspan="10" style="${headerAccent}">
+        <span class="gh-toggle">▾</span>
+        ${esc(key)}
+        <span class="gh-stats">${done}/${total} done</span>
+        <button class="gh-done-btn" onclick="event.stopPropagation();markGroupDone('${esc(key)}','${groupKey}')">✓ All done</button>
+      </td>
     </tr>`;
-  }).join("");
+
+    group.forEach(t => {
+      html += taskRow(t, today).replace('<tr class="', `<tr data-group="${esc(key)}" class="${hidCls} `);
+    });
+  });
+
+  tbody.innerHTML = html;
+  updateSelectAll();
+}
+
+function toggleGroup(key) {
+  if(collapsedGroups.has(key)) collapsedGroups.delete(key);
+  else collapsedGroups.add(key);
+  // Toggle display on rows and header arrow without full re-render
+  document.querySelectorAll(`tr[data-group="${CSS.escape(key)}"]`).forEach(tr=>{
+    tr.classList.toggle("group-hidden");
+  });
+  const hdr = [...document.querySelectorAll(".group-header-row")].find(r=>r.querySelector("td").textContent.trim().startsWith(key));
+  if(hdr) hdr.classList.toggle("collapsed");
+}
+
+function markGroupDone(key, groupKey) {
+  tasks.forEach(t => {
+    let val = groupKey==="category" ? (t.category||"Uncategorized")
+            : groupKey==="assignee" ? (t.delegatedTo||"Unassigned")
+            : t.priority;
+    if(val===key && !t.completed) { t.completed=true; t.status="Done"; }
+  });
+  saveTasks(); renderAll();
+}
+
+// ==============================================================
+// SECTION 6E: MULTI-SELECT
+// ==============================================================
+
+function toggleSelect(id, checked) {
+  if(checked) selectedIds.add(id);
+  else selectedIds.delete(id);
+  renderBulkBar();
+  updateSelectAll();
+  // Re-style the row without full re-render
+  const row = document.querySelector(`tr[data-id="${id}"]`);
+  if(row) row.classList.toggle("row-selected", checked);
+}
+
+function toggleSelectAll(checked) {
+  // Operate on currently visible rows
+  document.querySelectorAll("tr[data-id]").forEach(row => {
+    const id = row.dataset.id;
+    if(checked) selectedIds.add(id);
+    else selectedIds.delete(id);
+    row.classList.toggle("row-selected", checked);
+  });
+  document.querySelectorAll(".sel-cb").forEach(cb => cb.checked = checked);
+  renderBulkBar();
+}
+
+function updateSelectAll() {
+  const allCbs = [...document.querySelectorAll(".sel-cb")];
+  const th = document.getElementById("th-select-all");
+  if(!th || !allCbs.length) return;
+  const allChecked = allCbs.every(cb=>cb.checked);
+  const someChecked = allCbs.some(cb=>cb.checked);
+  th.checked = allChecked;
+  th.indeterminate = !allChecked && someChecked;
+}
+
+function renderBulkBar() {
+  const bar = document.getElementById("bulk-bar");
+  const n   = selectedIds.size;
+  document.getElementById("bulk-count").textContent = `${n} selected`;
+  bar.classList.toggle("visible", n > 0);
+}
+
+function applyBulkEdit() {
+  const status   = document.getElementById("bulk-status").value;
+  const priority = document.getElementById("bulk-priority").value;
+  const project  = document.getElementById("bulk-project").value;
+  const assignee = document.getElementById("bulk-assignee").value.trim();
+  const date     = document.getElementById("bulk-date").value;
+
+  if(!status && !priority && !project && !assignee && !date) {
+    alert("Choose at least one field to update.");
+    return;
+  }
+
+  tasks.forEach(t => {
+    if(!selectedIds.has(t.id)) return;
+    if(status)   { t.status=status; t.completed=(status==="Done"); }
+    if(priority)   t.priority=priority;
+    if(project)    t.project=project;
+    if(assignee)   t.delegatedTo=assignee;
+    if(date)       t.date=date;
+  });
+
+  // Reset bulk fields
+  ["bulk-status","bulk-priority","bulk-project"].forEach(id=>document.getElementById(id).value="");
+  document.getElementById("bulk-assignee").value="";
+  document.getElementById("bulk-date").value="";
+
+  saveTasks();
+  renderAll();
+}
+
+function bulkMarkDone() {
+  tasks.forEach(t=>{ if(selectedIds.has(t.id)){ t.completed=true; t.status="Done"; } });
+  saveTasks(); renderAll();
+}
+
+function bulkDelete() {
+  const n = selectedIds.size;
+  if(!confirm(`Delete ${n} task${n!==1?"s":""}?`)) return;
+  tasks = tasks.filter(t=>!selectedIds.has(t.id));
+  selectedIds.clear();
+  saveTasks(); renderAll();
+}
+
+function bulkDeselect() {
+  selectedIds.clear();
+  renderBulkBar();
+  renderCurrentView();
 }
 
 function pIcon(p){ return p==="High"?"🔴":p==="Medium"?"🟡":"🟢"; }
@@ -1334,7 +1702,8 @@ function bindAll() {
     ["f-project","f-status","f-priority","f-date","f-assignee"].forEach(id=>document.getElementById(id).value="");
     document.getElementById("f-rolled").checked=false;
     document.getElementById("f-overdue").checked=false;
-    renderTable(); renderCal();
+    selectedIds.clear(); renderBulkBar();
+    renderCurrentView(); renderCal();
   });
 
   // Header actions
@@ -1370,6 +1739,20 @@ function bindAll() {
   // Quick add
   document.getElementById("btn-qa-add").addEventListener("click", quickAdd);
   document.getElementById("qa-name").addEventListener("keydown", e=>{ if(e.key==="Enter") quickAdd(); });
+
+  // View tabs
+  document.querySelectorAll(".vt").forEach(btn=>{
+    btn.addEventListener("click", ()=>setView(btn.dataset.view));
+  });
+
+  // Select-all header checkbox
+  document.getElementById("th-select-all").addEventListener("change", e=>toggleSelectAll(e.target.checked));
+
+  // Bulk bar
+  document.getElementById("btn-bulk-apply").addEventListener("click", applyBulkEdit);
+  document.getElementById("btn-bulk-done").addEventListener("click", bulkMarkDone);
+  document.getElementById("btn-bulk-delete").addEventListener("click", bulkDelete);
+  document.getElementById("btn-bulk-deselect").addEventListener("click", bulkDeselect);
 
   // Table header sort
   document.querySelectorAll("th[data-sort]").forEach(th=>{
