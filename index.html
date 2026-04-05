@@ -1,0 +1,1371 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wedding + Move Planner · Apr 5 – May 3, 2026</title>
+  <style>
+    /* ==============================================================
+       VARIABLES & THEMING
+    ============================================================== */
+    :root {
+      --bg: #f0f2f5;
+      --surface: #ffffff;
+      --surface2: #f1f3f5;
+      --border: #dee2e6;
+      --text: #212529;
+      --text2: #6c757d;
+      --accent: #5c6bc0;
+      --accent-light: #e8eaf6;
+      --wedding: #c2185b;
+      --wedding-light: #fce4ec;
+      --moving: #1565c0;
+      --moving-light: #e3f2fd;
+      --both: #6a1b9a;
+      --both-light: #f3e5f5;
+      --high: #c62828;
+      --medium: #e65100;
+      --low: #2e7d32;
+      --done-bg: #f1f8e9;
+      --overdue-bg: #fff8e1;
+      --overdue-border: #ff8f00;
+      --rolled-bg: #fce4ec;
+      --rolled-border: #e91e63;
+      --shadow: 0 1px 4px rgba(0,0,0,0.08);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.12);
+      --radius: 8px;
+      --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    [data-theme="dark"] {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #232636;
+      --border: #2e3248;
+      --text: #e2e4ec;
+      --text2: #7b8099;
+      --accent: #7986cb;
+      --accent-light: #1e2240;
+      --wedding-light: #2d1225;
+      --moving-light: #0d1e35;
+      --both-light: #211230;
+      --done-bg: #141e14;
+      --overdue-bg: #221a08;
+      --rolled-bg: #2d1225;
+      --shadow: 0 1px 4px rgba(0,0,0,0.4);
+      --shadow-md: 0 4px 16px rgba(0,0,0,0.5);
+    }
+
+    /* ==============================================================
+       RESET
+    ============================================================== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1.5;
+      overflow-x: hidden;
+    }
+
+    /* ==============================================================
+       APP HEADER
+    ============================================================== */
+    .app-header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      box-shadow: var(--shadow);
+    }
+    .app-header h1 {
+      font-size: 16px;
+      font-weight: 700;
+      white-space: nowrap;
+      margin-right: auto;
+    }
+    .app-header h1 .accent { color: var(--accent); }
+    .app-header h1 .muted { font-weight: 400; color: var(--text2); font-size: 13px; }
+    .header-actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+
+    /* ==============================================================
+       LAYOUT
+    ============================================================== */
+    .main-layout {
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      height: calc(100vh - 49px);
+    }
+    .sidebar {
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+      padding: 12px 8px;
+    }
+    .main-content {
+      overflow-y: auto;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    @media (max-width: 700px) {
+      .main-layout { grid-template-columns: 1fr; height: auto; }
+      .sidebar { display: none; }
+      .main-content { padding: 10px; }
+    }
+
+    /* ==============================================================
+       SUMMARY CARDS
+    ============================================================== */
+    .summary-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(108px, 1fr));
+      gap: 8px;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      box-shadow: var(--shadow);
+    }
+    .card-label {
+      font-size: 10px;
+      color: var(--text2);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 3px;
+    }
+    .card-value { font-size: 22px; font-weight: 700; }
+    .card-value.c-danger  { color: var(--high); }
+    .card-value.c-warning { color: var(--medium); }
+    .card-value.c-success { color: var(--low); }
+    .card-value.c-wedding { color: var(--wedding); }
+    .card-value.c-moving  { color: var(--moving); }
+    .card-value.c-neutral { color: var(--text2); }
+
+    /* ==============================================================
+       TODAY FOCUS
+    ============================================================== */
+    .today-focus {
+      background: var(--surface);
+      border: 2px solid var(--accent);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+    }
+    .today-focus h3 {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+    .focus-tasks { display: flex; flex-wrap: wrap; gap: 6px; }
+    .focus-chip {
+      background: var(--accent-light);
+      border: 1px solid var(--accent);
+      border-radius: 5px;
+      padding: 3px 9px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .focus-chip.nice { opacity: 0.6; border-style: dashed; }
+
+    /* ==============================================================
+       QUICK ADD
+    ============================================================== */
+    .quick-add-bar {
+      background: var(--surface);
+      border: 1px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 8px 12px;
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .quick-add-bar input[type="text"] { flex: 1; min-width: 180px; }
+
+    /* ==============================================================
+       CONTROLS BAR
+    ============================================================== */
+    .controls-bar {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+    .fg { display: flex; align-items: center; gap: 5px; }
+    .fg label { font-size: 11px; color: var(--text2); white-space: nowrap; }
+
+    /* ==============================================================
+       FORM CONTROLS
+    ============================================================== */
+    select, input[type="text"], input[type="date"], textarea {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 5px 8px;
+      border-radius: 5px;
+      font-size: 13px;
+      font-family: var(--font);
+      outline: none;
+    }
+    select:focus, input:focus, textarea:focus { border-color: var(--accent); }
+
+    /* ==============================================================
+       BUTTONS
+    ============================================================== */
+    .btn {
+      padding: 5px 11px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 12px;
+      font-family: var(--font);
+      transition: background 0.12s, border-color 0.12s;
+      white-space: nowrap;
+      line-height: 1.4;
+    }
+    .btn:hover { background: var(--accent-light); border-color: var(--accent); color: var(--accent); }
+    .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .btn-primary:hover { opacity: 0.88; color: #fff; }
+    .btn-danger { color: var(--high); border-color: var(--high); }
+    .btn-danger:hover { background: #ffebee; color: var(--high); }
+    [data-theme="dark"] .btn-danger:hover { background: #2d1212; }
+    .btn-sm { padding: 3px 8px; font-size: 11px; }
+
+    /* ==============================================================
+       CALENDAR SIDEBAR
+    ============================================================== */
+    .sidebar-title {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text2);
+      margin-bottom: 6px;
+      padding-left: 4px;
+    }
+    .cal-day {
+      padding: 6px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-bottom: 1px;
+      border: 1px solid transparent;
+      transition: background 0.12s;
+      user-select: none;
+    }
+    .cal-day:hover { background: var(--accent-light); }
+    .cal-day.active { background: var(--accent-light); border-color: var(--accent); }
+    .cal-day.today-day { border-left: 3px solid var(--accent); }
+    .cal-day.blocked-day { opacity: 0.45; background: var(--surface2); }
+    .cal-day.wedding-day { background: var(--wedding-light); border-color: var(--wedding); }
+    .cal-day.move-day { background: var(--moving-light); border-color: var(--moving); }
+    .cal-day-row { display: flex; justify-content: space-between; align-items: center; gap: 4px; }
+    .cal-day-date { font-size: 12px; font-weight: 600; }
+    .cal-day-wd { font-size: 10px; color: var(--text2); }
+    .cal-day-count { font-size: 10px; background: var(--accent); color: #fff; border-radius: 8px; padding: 0 5px; min-width: 16px; text-align: center; }
+    .cal-day-count.all-done { background: var(--low); }
+    .cal-tags { display: flex; gap: 2px; margin-top: 1px; flex-wrap: wrap; }
+    .cal-tag { font-size: 9px; padding: 0 3px; border-radius: 3px; }
+
+    /* ==============================================================
+       TASK TABLE
+    ============================================================== */
+    .table-wrapper {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: auto;
+      box-shadow: var(--shadow);
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead { position: sticky; top: 0; z-index: 10; }
+    th {
+      background: var(--surface2);
+      padding: 9px 11px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text2);
+      border-bottom: 2px solid var(--border);
+      white-space: nowrap;
+      cursor: pointer;
+      user-select: none;
+    }
+    th:hover { color: var(--accent); }
+    th.sort-asc::after  { content: ' ↑'; color: var(--accent); }
+    th.sort-desc::after { content: ' ↓'; color: var(--accent); }
+    td {
+      padding: 7px 11px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--surface2); }
+
+    /* Row states */
+    tr.row-done td { background: var(--done-bg); opacity: 0.72; }
+    tr.row-done .task-name { text-decoration: line-through; color: var(--text2); }
+    tr.row-overdue { border-left: 3px solid var(--overdue-border); }
+    tr.row-overdue td { background: var(--overdue-bg); }
+    tr.row-rolled td { background: var(--rolled-bg); }
+    tr.row-today { border-left: 3px solid var(--accent); }
+
+    .edit-btn { opacity: 0; transition: opacity 0.1s; }
+    tr:hover .edit-btn { opacity: 1; }
+
+    .task-name { font-weight: 500; }
+    .task-meta { font-size: 11px; color: var(--text2); margin-top: 2px; }
+    .date-label { white-space: nowrap; font-size: 12px; }
+    .date-wd { font-size: 10px; color: var(--text2); }
+
+    /* ==============================================================
+       BADGES & PILLS
+    ============================================================== */
+    .badge {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .badge-wedding  { background: var(--wedding-light); color: var(--wedding); }
+    .badge-moving   { background: var(--moving-light);  color: var(--moving); }
+    .badge-both     { background: var(--both-light);    color: var(--both); }
+
+    .badge-high   { background: #ffebee; color: var(--high); }
+    .badge-medium { background: #fff3e0; color: var(--medium); }
+    .badge-low    { background: #e8f5e9; color: var(--low); }
+    [data-theme="dark"] .badge-high   { background: #2d1212; }
+    [data-theme="dark"] .badge-medium { background: #2d1e08; }
+    [data-theme="dark"] .badge-low    { background: #122412; }
+
+    .badge-notstarted  { background: var(--surface2); color: var(--text2); }
+    .badge-inprogress  { background: #e3f2fd; color: #1565c0; }
+    .badge-done        { background: #e8f5e9; color: #2e7d32; }
+    [data-theme="dark"] .badge-inprogress { background: #0d1e35; color: #90caf9; }
+    [data-theme="dark"] .badge-done       { background: #122412; color: #81c784; }
+
+    .mini-badge {
+      display: inline-block;
+      font-size: 10px;
+      padding: 1px 5px;
+      border-radius: 8px;
+      font-weight: 600;
+      margin-left: 4px;
+      vertical-align: middle;
+    }
+    .mb-rolled  { background: var(--wedding); color: #fff; }
+    .mb-overdue { background: var(--overdue-border); color: #fff; }
+    .mb-today   { background: var(--accent); color: #fff; }
+
+    .effort-pill {
+      font-size: 11px;
+      background: var(--surface2);
+      color: var(--text2);
+      padding: 1px 6px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    /* ==============================================================
+       MODAL
+    ============================================================== */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 22px 24px;
+      width: 100%;
+      max-width: 500px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow-md);
+    }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+    .modal-title { font-size: 15px; font-weight: 700; }
+    .modal-close { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text2); padding: 0 4px; line-height: 1; }
+    .form-group { margin-bottom: 13px; }
+    .form-group > label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text2);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+    }
+    .form-group input,
+    .form-group select,
+    .form-group textarea { width: 100%; }
+    .form-group textarea { min-height: 72px; resize: vertical; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .form-check { display: flex; align-items: center; gap: 7px; }
+    .form-check input[type="checkbox"] { width: 15px; height: 15px; accent-color: var(--accent); }
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 7px;
+      margin-top: 18px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+    }
+    .modal-meta { font-size: 11px; color: var(--text2); margin-top: 10px; }
+
+    /* ==============================================================
+       MISC
+    ============================================================== */
+    .empty-state { text-align: center; padding: 36px; color: var(--text2); }
+
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+    @media print {
+      .app-header, .sidebar, .controls-bar, .quick-add-bar,
+      .header-actions, .today-focus, .edit-btn { display: none !important; }
+      .main-layout { display: block; height: auto; }
+      .main-content { overflow: visible; padding: 0; }
+      .table-wrapper { box-shadow: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ============================================================
+     HEADER
+============================================================ -->
+<header class="app-header">
+  <h1>💍 Wedding <span class="accent">&amp;</span> Move Planner <span class="muted">Apr 5 – May 3, 2026</span></h1>
+  <div class="header-actions">
+    <button class="btn btn-sm" id="btn-today">📌 Today</button>
+    <button class="btn btn-sm" id="btn-export-csv">↓ CSV</button>
+    <button class="btn btn-sm" id="btn-export-json">↓ JSON</button>
+    <button class="btn btn-sm" id="btn-import-json">↑ Import</button>
+    <button class="btn btn-sm btn-danger" id="btn-reset">Reset</button>
+    <button class="btn btn-sm" id="btn-theme">🌙 Dark</button>
+    <input type="file" id="file-import" accept=".json" style="display:none">
+  </div>
+</header>
+
+<div class="main-layout">
+  <!-- ============================================================
+       SIDEBAR: CALENDAR STRIP
+  ============================================================ -->
+  <aside class="sidebar">
+    <div class="sidebar-title">Calendar</div>
+    <div id="cal-strip"></div>
+  </aside>
+
+  <!-- ============================================================
+       MAIN CONTENT
+  ============================================================ -->
+  <main class="main-content">
+    <!-- Summary cards -->
+    <div class="summary-cards" id="summary-cards"></div>
+
+    <!-- Today's focus -->
+    <div class="today-focus" id="today-focus">
+      <h3>📌 Today's Focus — <span id="today-date-label"></span></h3>
+      <div class="focus-tasks" id="focus-tasks"></div>
+    </div>
+
+    <!-- Quick add -->
+    <div class="quick-add-bar">
+      <input type="text" id="qa-name" placeholder="Quick add task… (⌘K)">
+      <select id="qa-project">
+        <option value="Wedding">Wedding</option>
+        <option value="Moving">Moving</option>
+        <option value="Both">Both</option>
+      </select>
+      <select id="qa-priority">
+        <option value="High">High</option>
+        <option value="Medium" selected>Medium</option>
+        <option value="Low">Low</option>
+      </select>
+      <input type="date" id="qa-date">
+      <button class="btn btn-primary btn-sm" id="btn-qa-add">Add Task</button>
+    </div>
+
+    <!-- Filters & sort -->
+    <div class="controls-bar">
+      <div class="fg">
+        <label>Project</label>
+        <select id="f-project"><option value="">All</option><option>Wedding</option><option>Moving</option><option>Both</option></select>
+      </div>
+      <div class="fg">
+        <label>Status</label>
+        <select id="f-status"><option value="">All</option><option>Not started</option><option>In progress</option><option>Done</option></select>
+      </div>
+      <div class="fg">
+        <label>Priority</label>
+        <select id="f-priority"><option value="">All</option><option>High</option><option>Medium</option><option>Low</option></select>
+      </div>
+      <div class="fg">
+        <label>Date</label>
+        <input type="date" id="f-date" min="2026-04-05" max="2026-05-03">
+        <button class="btn btn-sm" id="btn-clear-date" title="Clear date">×</button>
+      </div>
+      <div class="fg">
+        <label><input type="checkbox" id="f-rolled" style="accent-color:var(--accent)"> Rolled-over</label>
+      </div>
+      <div class="fg">
+        <label><input type="checkbox" id="f-overdue" style="accent-color:var(--high)"> Overdue</label>
+      </div>
+      <div class="fg">
+        <label>Sort</label>
+        <select id="s-field"><option value="date">Date</option><option value="priority">Priority</option><option value="project">Project</option><option value="status">Status</option></select>
+        <select id="s-dir"><option value="asc">↑ Asc</option><option value="desc">↓ Desc</option></select>
+      </div>
+      <button class="btn btn-sm" id="btn-clear-filters">Clear Filters</button>
+    </div>
+
+    <!-- Task table -->
+    <div class="table-wrapper">
+      <table id="task-table">
+        <thead>
+          <tr>
+            <th style="width:32px">✓</th>
+            <th data-sort="date">Date</th>
+            <th data-sort="task">Task</th>
+            <th>Category</th>
+            <th data-sort="project">Project</th>
+            <th data-sort="priority">Priority</th>
+            <th data-sort="status">Status</th>
+            <th>Effort</th>
+            <th style="width:28px"></th>
+          </tr>
+        </thead>
+        <tbody id="task-tbody"></tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<!-- ============================================================
+     EDIT MODAL
+============================================================ -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">Edit Task</div>
+      <button class="modal-close" id="modal-close">×</button>
+    </div>
+    <div class="form-group">
+      <label>Task Name</label>
+      <input type="text" id="m-task">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Date</label>
+        <input type="date" id="m-date" min="2026-04-05" max="2026-05-03">
+      </div>
+      <div class="form-group">
+        <label>Project</label>
+        <select id="m-project"><option>Wedding</option><option>Moving</option><option>Both</option></select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Category</label>
+        <input type="text" id="m-category">
+      </div>
+      <div class="form-group">
+        <label>Effort</label>
+        <select id="m-effort"><option>15m</option><option>30m</option><option>1h</option><option>2h+</option></select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Priority</label>
+        <select id="m-priority"><option>High</option><option>Medium</option><option>Low</option></select>
+      </div>
+      <div class="form-group">
+        <label>Status</label>
+        <select id="m-status"><option>Not started</option><option>In progress</option><option>Done</option></select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Delegated To</label>
+      <input type="text" id="m-delegated">
+    </div>
+    <div class="form-group">
+      <label>Notes</label>
+      <textarea id="m-notes"></textarea>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <div class="form-check">
+          <input type="checkbox" id="m-lightweight">
+          <label style="text-transform:none;font-size:12px">Lightweight (ok during travel)</label>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="form-check">
+          <input type="checkbox" id="m-nth">
+          <label style="text-transform:none;font-size:12px">Nice to have</label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-meta" id="m-meta"></div>
+    <div class="modal-footer">
+      <button class="btn btn-danger btn-sm" id="m-delete">Delete</button>
+      <button class="btn btn-sm" id="m-dupe">Duplicate</button>
+      <button class="btn btn-sm" id="m-cancel">Cancel</button>
+      <button class="btn btn-primary" id="m-save">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ==============================================================
+// SECTION 1: CONSTANTS & CONFIGURATION
+// ==============================================================
+
+const APP_TODAY   = "2026-04-05"; // "today" for rollover & display; swap to REAL_TODAY for live use
+const REAL_TODAY  = new Date().toISOString().slice(0, 10);
+const PLAN_START  = "2026-04-05";
+const PLAN_END    = "2026-05-03";
+const WEDDING_DATE = "2026-05-03";
+const MOVE_DATE    = "2026-04-25";
+const STORAGE_KEY  = "wedding_move_planner_v3";
+
+// Apr 18 = travel departs early morning, Apr 19 = travel, Apr 20 = returns ~5pm
+const BLOCKED_DATES    = ["2026-04-18", "2026-04-19", "2026-04-20"];
+const MAX_WEEKDAY      = 4;   // normal weekday task cap for rollover
+const MAX_WEEKEND      = 8;   // weekend cap
+const MAX_BLOCKED      = 2;   // lightweight tasks allowed on blocked days
+
+const PRIORITY_ORDER = { High: 0, Medium: 1, Low: 2 };
+const STATUS_ORDER   = { "Not started": 0, "In progress": 1, "Done": 2 };
+
+// ==============================================================
+// SECTION 2: SEED TASK DATA
+// ==============================================================
+// All required tasks pre-populated for Apr 5 – May 3, 2026.
+// Scheduling rules applied:
+//   • Front-loaded: vendor calls/payments, marriage license, cake order
+//   • Weekdays capped at 1–4 tasks
+//   • Apr 18-20 blocked; only lightweight/optional tasks there
+//   • Similar tasks grouped (calls, errands, packing by room)
+
+const SEED_TASKS = [
+
+  // ── SUNDAY APR 5 (weekend — first day, full availability) ─────────────────
+  { id:"t001", date:"2026-04-05", originalDate:"2026-04-05", task:"Finalize guest count",               category:"Logistics",    project:"Wedding", priority:"High",   status:"Not started", effort:"1h",   delegatedTo:"", notes:"Confirm final headcount across all vendor contracts",         lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+  { id:"t002", date:"2026-04-05", originalDate:"2026-04-05", task:"Feng Cha – update head count",       category:"Vendors",      project:"Wedding", priority:"High",   status:"Not started", effort:"15m",  delegatedTo:"", notes:"Call or message to confirm final guest number",               lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+  { id:"t003", date:"2026-04-05", originalDate:"2026-04-05", task:"Rudy's – update head count",         category:"Vendors",      project:"Wedding", priority:"High",   status:"Not started", effort:"15m",  delegatedTo:"", notes:"Call or email Rudy's to confirm final headcount",              lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+  { id:"t004", date:"2026-04-05", originalDate:"2026-04-05", task:"Book / confirm movers",              category:"Logistics",    project:"Moving",  priority:"High",   status:"Not started", effort:"1h",   delegatedTo:"", notes:"Confirm Apr 25 date, get written confirmation + insurance info",lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+  { id:"t005", date:"2026-04-05", originalDate:"2026-04-05", task:"Schedule vegetarian options",        category:"Vendors",      project:"Wedding", priority:"High",   status:"Not started", effort:"30m",  delegatedTo:"", notes:"Confirm veg/vegan count and specific menu items with caterer",  lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+
+  // ── MONDAY APR 6 (weekday) ────────────────────────────────────────────────
+  { id:"t006", date:"2026-04-06", originalDate:"2026-04-06", task:"Feng Cha – pay remaining balance",   category:"Vendors",      project:"Wedding", priority:"High",   status:"Not started", effort:"30m",  delegatedTo:"", notes:"Check invoice; confirm payment method (card, Zelle, check)",    lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+  { id:"t007", date:"2026-04-06", originalDate:"2026-04-06", task:"Rudy's – pay full balance",          category:"Vendors",      project:"Wedding", priority:"High",   status:"Not started", effort:"30m",  delegatedTo:"", notes:"Confirm total due; pay in full by deadline",                   lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+  { id:"t008", date:"2026-04-06", originalDate:"2026-04-06", task:"Start decluttering – living room",   category:"Packing",      project:"Moving",  priority:"High",   status:"Not started", effort:"2h+",  delegatedTo:"", notes:"Separate donate / trash / keep piles; bag up first load",        lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+
+  // ── TUESDAY APR 7 (weekday) ───────────────────────────────────────────────
+  { id:"t009", date:"2026-04-07", originalDate:"2026-04-07", task:"Order cakes",                        category:"Cake",         project:"Wedding", priority:"High",   status:"Not started", effort:"1h",   delegatedTo:"", notes:"Confirm design, flavor, delivery date (May 3), allergens",       lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+  { id:"t010", date:"2026-04-07", originalDate:"2026-04-07", task:"Submit music planning form",         category:"Logistics",    project:"Wedding", priority:"High",   status:"Not started", effort:"30m",  delegatedTo:"", notes:"DJ/band form: must-plays, do-not-plays, first dance, etc.",       lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+  { id:"t011", date:"2026-04-07", originalDate:"2026-04-07", task:"Utilities transfer – start process", category:"Logistics",    project:"Moving",  priority:"High",   status:"Not started", effort:"1h",   delegatedTo:"", notes:"Electric, internet, gas – initiate transfers effective Apr 25",  lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+
+  // ── WEDNESDAY APR 8 (weekday) ─────────────────────────────────────────────
+  { id:"t012", date:"2026-04-08", originalDate:"2026-04-08", task:"Secure marriage license",            category:"Logistics",    project:"Wedding", priority:"High",   status:"Not started", effort:"2h+",  delegatedTo:"", notes:"Go in person together; check county requirements + wait time",    lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+  { id:"t013", date:"2026-04-08", originalDate:"2026-04-08", task:"Compile address change checklist",   category:"Logistics",    project:"Moving",  priority:"Medium", status:"Not started", effort:"1h",   delegatedTo:"", notes:"USPS, bank, DMV, employer, IRS, subscriptions, insurance",       lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+
+  // ── THURSDAY APR 9 (weekday) ──────────────────────────────────────────────
+  { id:"t014", date:"2026-04-09", originalDate:"2026-04-09", task:"Decide toasts – confirm speakers",   category:"Logistics",    project:"Wedding", priority:"Medium", status:"Not started", effort:"30m",  delegatedTo:"", notes:"Confirm who is toasting; brief them on length (2 min max)",       lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+  { id:"t015", date:"2026-04-09", originalDate:"2026-04-09", task:"Finalize ceremony order with Ken",   category:"Logistics",    project:"Wedding", priority:"High",   status:"Not started", effort:"1h",   delegatedTo:"", notes:"Readings, rituals, processional order, vows cues, pronouncement",  lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+  { id:"t016", date:"2026-04-09", originalDate:"2026-04-09", task:"Declutter – bedroom",                category:"Packing",      project:"Moving",  priority:"High",   status:"Not started", effort:"2h+",  delegatedTo:"", notes:"Clothes, books, misc – donate or trash what isn't coming",         lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+
+  // ── FRIDAY APR 10 (weekday) ───────────────────────────────────────────────
+  { id:"t017", date:"2026-04-10", originalDate:"2026-04-10", task:"Buy Yoon's wedding band",            category:"Logistics",    project:"Wedding", priority:"High",   status:"Not started", effort:"2h+",  delegatedTo:"", notes:"Pick up or order – confirm size and style; allow time for resize",  lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+  { id:"t018", date:"2026-04-10", originalDate:"2026-04-10", task:"Plan all signage",                   category:"Logistics",    project:"Wedding", priority:"Medium", status:"Not started", effort:"1h",   delegatedTo:"", notes:"Welcome sign, seating chart display, directional signs, table #s",  lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+
+  // ── SATURDAY APR 11 (weekend) ─────────────────────────────────────────────
+  { id:"t019", date:"2026-04-11", originalDate:"2026-04-11", task:"Buy cake stand",                     category:"Cake",         project:"Wedding", priority:"Medium", status:"Not started", effort:"1h",   delegatedTo:"", notes:"Check dimensions match cake size; bring cake measurements",         lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+  { id:"t020", date:"2026-04-11", originalDate:"2026-04-11", task:"Buy cake topper",                    category:"Cake",         project:"Wedding", priority:"Medium", status:"Not started", effort:"30m",  delegatedTo:"", notes:"Confirm style (custom vs. off-the-shelf); order if custom",          lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+  { id:"t021", date:"2026-04-11", originalDate:"2026-04-11", task:"Buy cloak for ringbearer",           category:"Wedding Party", project:"Wedding", priority:"Medium", status:"Not started", effort:"1h",   delegatedTo:"", notes:"Check size chart; may need to order online",                       lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+  { id:"t022", date:"2026-04-11", originalDate:"2026-04-11", task:"Pack – kitchen (non-daily items)",   category:"Packing",      project:"Moving",  priority:"High",   status:"Not started", effort:"2h+",  delegatedTo:"", notes:"Box up everything except daily-use dishes/appliances",              lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+  { id:"t023", date:"2026-04-11", originalDate:"2026-04-11", task:"Donation / trash run – round 1",     category:"Logistics",    project:"Moving",  priority:"Medium", status:"Not started", effort:"2h+",  delegatedTo:"", notes:"Load up and drop off first round of donated items",                 lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+
+  // ── SUNDAY APR 12 (weekend) ───────────────────────────────────────────────
+  { id:"t024", date:"2026-04-12", originalDate:"2026-04-12", task:"Buy alcohol from Costco / Specs",   category:"Vendors",      project:"Wedding", priority:"High",   status:"Not started", effort:"2h+",  delegatedTo:"", notes:"Beer, wine, spirits per guest count – confirm quantities first",    lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+  { id:"t025", date:"2026-04-12", originalDate:"2026-04-12", task:"Pack – living room",                category:"Packing",      project:"Moving",  priority:"High",   status:"Not started", effort:"2h+",  delegatedTo:"", notes:"Books, decor, electronics not in daily use",                       lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+  { id:"t026", date:"2026-04-12", originalDate:"2026-04-12", task:"Create seating chart – first draft", category:"Logistics",   project:"Wedding", priority:"High",   status:"Not started", effort:"2h+",  delegatedTo:"", notes:"Use AllSeated, Zola, or a spreadsheet; group by relationship",     lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+
+  // ── MONDAY APR 13 (weekday) ───────────────────────────────────────────────
+  { id:"t027", date:"2026-04-13", originalDate:"2026-04-13", task:"Write vows – first draft",           category:"Logistics",    project:"Wedding", priority:"High",   status:"Not started", effort:"2h+",  delegatedTo:"", notes:"Aim for ~75 seconds each; keep personal and specific",             lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+  { id:"t028", date:"2026-04-13", originalDate:"2026-04-13", task:"Pack – home office / desk",          category:"Packing",      project:"Moving",  priority:"Medium", status:"Not started", effort:"1h",   delegatedTo:"", notes:"Books, papers, cords, non-daily peripherals – label carefully",    lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+
+  // ── TUESDAY APR 14 (weekday) ──────────────────────────────────────────────
+  { id:"t029", date:"2026-04-14", originalDate:"2026-04-14", task:"Pack – bathroom (non-daily toiletries)", category:"Packing", project:"Moving",  priority:"Medium", status:"Not started", effort:"1h",   delegatedTo:"", notes:"Leave daily essentials out until move morning",                    lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+  { id:"t030", date:"2026-04-14", originalDate:"2026-04-14", task:"Finalize day-of timeline",           category:"Logistics",    project:"Wedding", priority:"High",   status:"Not started", effort:"1h",   delegatedTo:"", notes:"Hair/makeup → ceremony → cocktail → reception → send-off timing",   lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+  { id:"t031", date:"2026-04-14", originalDate:"2026-04-14", task:"Set up cards & gifts box",           category:"Logistics",    project:"Wedding", priority:"Low",    status:"Not started", effort:"30m",  delegatedTo:"", notes:"Purchase or DIY; assign someone to manage day-of",                 lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+
+  // ── WEDNESDAY APR 15 (weekday) ────────────────────────────────────────────
+  { id:"t032", date:"2026-04-15", originalDate:"2026-04-15", task:"Finalize seating chart",             category:"Logistics",    project:"Wedding", priority:"High",   status:"Not started", effort:"2h+",  delegatedTo:"", notes:"Incorporate latest RSVP updates; finalize all tables",              lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+  { id:"t033", date:"2026-04-15", originalDate:"2026-04-15", task:"Pack – bedroom closet",              category:"Packing",      project:"Moving",  priority:"High",   status:"Not started", effort:"2h+",  delegatedTo:"", notes:"Seasonal clothes, shoes, accessories, storage items",              lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+
+  // ── THURSDAY APR 16 (weekday) ─────────────────────────────────────────────
+  { id:"t034", date:"2026-04-16", originalDate:"2026-04-16", task:"Pack – remaining rooms & misc",      category:"Packing",      project:"Moving",  priority:"High",   status:"Not started", effort:"2h+",  delegatedTo:"", notes:"Garage, storage closet, hallway – whatever hasn't been packed yet", lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+  { id:"t035", date:"2026-04-16", originalDate:"2026-04-16", task:"Confirm move-day logistics",         category:"Logistics",    project:"Moving",  priority:"High",   status:"Not started", effort:"30m",  delegatedTo:"", notes:"Reconfirm movers: arrival time, both addresses, elevator/parking",  lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+
+  // ── FRIDAY APR 17 (weekday – last full day before travel) ─────────────────
+  { id:"t036", date:"2026-04-17", originalDate:"2026-04-17", task:"Build essentials box",               category:"Packing",      project:"Moving",  priority:"High",   status:"Not started", effort:"1h",   delegatedTo:"", notes:"Toiletries, chargers, meds, snacks, important docs, coffee setup",  lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+  { id:"t037", date:"2026-04-17", originalDate:"2026-04-17", task:"Write vows – revise & finalize",     category:"Logistics",    project:"Wedding", priority:"High",   status:"Not started", effort:"1h",   delegatedTo:"", notes:"Polish draft, practice reading aloud, aim for 60-90 seconds",      lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+  { id:"t038", date:"2026-04-17", originalDate:"2026-04-17", task:"Donation / trash run – round 2",     category:"Logistics",    project:"Moving",  priority:"Medium", status:"Not started", effort:"1h",   delegatedTo:"", notes:"Clear out remaining donate/trash piles before travel",              lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+
+  // ── APR 18-20: TRAVEL WINDOW (blocked – lightweight only) ─────────────────
+  { id:"t039", date:"2026-04-18", originalDate:"2026-04-18", task:"Review vows draft (optional)",       category:"Logistics",    project:"Wedding", priority:"Low",    status:"Not started", effort:"15m",  delegatedTo:"", notes:"Light read-through if you feel like it – no pressure",             lightweight:true,  niceToHave:true,  completed:false, rolledOverCount:0 },
+  { id:"t040", date:"2026-04-19", originalDate:"2026-04-19", task:"Think through toast order (optional)", category:"Logistics", project:"Wedding", priority:"Low",    status:"Not started", effort:"15m",  delegatedTo:"", notes:"Jot ideas in phone if they come up",                               lightweight:true,  niceToHave:true,  completed:false, rolledOverCount:0 },
+  { id:"t041", date:"2026-04-20", originalDate:"2026-04-20", task:"Review master task list (evening)",   category:"Logistics",   project:"Both",    priority:"Low",    status:"Not started", effort:"15m",  delegatedTo:"", notes:"Quick scan after arriving home ~5pm; plan the rest of the week",   lightweight:true,  niceToHave:false, completed:false, rolledOverCount:0 },
+
+  // ── TUESDAY APR 21 (back from travel) ────────────────────────────────────
+  { id:"t042", date:"2026-04-21", originalDate:"2026-04-21", task:"Pack – bedroom final push",          category:"Packing",      project:"Moving",  priority:"High",   status:"Not started", effort:"2h+",  delegatedTo:"", notes:"Finish anything remaining in bedroom; leave only daily-use items",  lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+  { id:"t043", date:"2026-04-21", originalDate:"2026-04-21", task:"Confirm all wedding vendors",        category:"Vendors",      project:"Wedding", priority:"High",   status:"Not started", effort:"1h",   delegatedTo:"", notes:"Feng Cha, Rudy's, cake baker, florist, photographer – final check",  lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+
+  // ── WEDNESDAY APR 22 (weekday – 3 days before move) ──────────────────────
+  { id:"t044", date:"2026-04-22", originalDate:"2026-04-22", task:"Pack – final misc items",            category:"Packing",      project:"Moving",  priority:"High",   status:"Not started", effort:"1h",   delegatedTo:"", notes:"Anything left that isn't a daily-use item; label all boxes",       lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+  { id:"t045", date:"2026-04-22", originalDate:"2026-04-22", task:"Submit USPS mail forwarding",        category:"Logistics",    project:"Moving",  priority:"High",   status:"Not started", effort:"15m",  delegatedTo:"", notes:"Do online at usps.com; takes ~3 business days to activate",         lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+  { id:"t046", date:"2026-04-22", originalDate:"2026-04-22", task:"Order seating chart display",        category:"Logistics",    project:"Wedding", priority:"High",   status:"Not started", effort:"30m",  delegatedTo:"", notes:"Order printed acrylic/foam board or arrange DIY board",             lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+
+  // ── THURSDAY APR 23 (weekday – 2 days before move) ───────────────────────
+  { id:"t047", date:"2026-04-23", originalDate:"2026-04-23", task:"Finalize essentials box",            category:"Packing",      project:"Moving",  priority:"High",   status:"Not started", effort:"1h",   delegatedTo:"", notes:"Seal and label; keep separate – this box travels with you",         lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+  { id:"t048", date:"2026-04-23", originalDate:"2026-04-23", task:"Move-day final brief",               category:"Logistics",    project:"Moving",  priority:"High",   status:"Not started", effort:"30m",  delegatedTo:"", notes:"Confirm movers' arrival time; notify building mgr at both locations",lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+
+  // ── FRIDAY APR 24 (day before move) ──────────────────────────────────────
+  { id:"t049", date:"2026-04-24", originalDate:"2026-04-24", task:"Final pack – daily-use items",       category:"Packing",      project:"Moving",  priority:"High",   status:"Not started", effort:"2h+",  delegatedTo:"", notes:"Toiletries, chargers, laptop, bedding, coffee maker – pack last",   lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+  { id:"t050", date:"2026-04-24", originalDate:"2026-04-24", task:"Pack bags for Sedona / Vegas",       category:"Logistics",    project:"Wedding", priority:"Medium", status:"Not started", effort:"1h",   delegatedTo:"", notes:"Wedding night + honeymoon bag ready to grab morning of May 3",      lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+
+  // ── SATURDAY APR 25: MOVE DAY ─────────────────────────────────────────────
+  { id:"t051", date:"2026-04-25", originalDate:"2026-04-25", task:"🚛 Move-day coordination",           category:"Logistics",    project:"Moving",  priority:"High",   status:"Not started", effort:"2h+",  delegatedTo:"", notes:"Oversee movers; do full walkthrough of old place before leaving",   lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+  { id:"t052", date:"2026-04-25", originalDate:"2026-04-25", task:"First-night setup",                  category:"Logistics",    project:"Moving",  priority:"Medium", status:"Not started", effort:"1h",   delegatedTo:"", notes:"Bed frame + mattress, bathroom basics, kitchen essentials only",    lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+
+  // ── SUNDAY APR 26 (post-move recovery) ───────────────────────────────────
+  { id:"t053", date:"2026-04-26", originalDate:"2026-04-26", task:"Post-move unpacking – priority boxes", category:"Logistics",  project:"Moving",  priority:"Medium", status:"Not started", effort:"2h+",  delegatedTo:"", notes:"Kitchen, bathroom, bedroom – just enough to be functional",         lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+  { id:"t054", date:"2026-04-26", originalDate:"2026-04-26", task:"First grocery run at new place",     category:"Logistics",    project:"Moving",  priority:"Low",    status:"Not started", effort:"1h",   delegatedTo:"", notes:"Basics only – coffee, snacks, meals for the week",                  lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+
+  // ── MONDAY APR 27 (weekday) ───────────────────────────────────────────────
+  { id:"t055", date:"2026-04-27", originalDate:"2026-04-27", task:"Address updates – bank, employer, DMV", category:"Logistics", project:"Moving",  priority:"Medium", status:"Not started", effort:"1h",   delegatedTo:"", notes:"Work through address change checklist; prioritize bank + employer",  lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+  { id:"t056", date:"2026-04-27", originalDate:"2026-04-27", task:"Continue unpacking – living areas",  category:"Logistics",    project:"Moving",  priority:"Low",    status:"Not started", effort:"2h+",  delegatedTo:"", notes:"Don't overdo it; keep wedding prep energy for the week",            lightweight:false, niceToHave:true,  completed:false, rolledOverCount:0 },
+
+  // ── TUESDAY APR 28 (wedding week starts) ──────────────────────────────────
+  { id:"t057", date:"2026-04-28", originalDate:"2026-04-28", task:"Wedding week vendor check-ins",      category:"Vendors",      project:"Wedding", priority:"High",   status:"Not started", effort:"30m",  delegatedTo:"", notes:"Photographer, florist, hair/makeup, cake delivery time – confirm all",lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+  { id:"t058", date:"2026-04-28", originalDate:"2026-04-28", task:"Share day-of timeline with all parties", category:"Logistics", project:"Wedding", priority:"High",  status:"Not started", effort:"30m",  delegatedTo:"", notes:"Email timeline to wedding party, family, and each vendor",           lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+
+  // ── WEDNESDAY APR 29 (weekday) ────────────────────────────────────────────
+  { id:"t059", date:"2026-04-29", originalDate:"2026-04-29", task:"Pick up / receive all wedding items", category:"Logistics",   project:"Wedding", priority:"High",   status:"Not started", effort:"1h",   delegatedTo:"", notes:"Rings, signage, favors, programs – confirm everything is in hand",  lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+  { id:"t060", date:"2026-04-29", originalDate:"2026-04-29", task:"Review ceremony order one final time", category:"Logistics",  project:"Wedding", priority:"Medium", status:"Not started", effort:"30m",  delegatedTo:"", notes:"Share final script/order with Ken and wedding party",               lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+
+  // ── THURSDAY APR 30 (lighter day before rehearsal) ───────────────────────
+  { id:"t061", date:"2026-04-30", originalDate:"2026-04-30", task:"Rehearsal logistics & confirmation",  category:"Logistics",   project:"Wedding", priority:"High",   status:"Not started", effort:"1h",   delegatedTo:"", notes:"Confirm time and location; brief wedding party on roles and cues",  lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+  { id:"t062", date:"2026-04-30", originalDate:"2026-04-30", task:"Pack wedding day bag",               category:"Logistics",    project:"Wedding", priority:"High",   status:"Not started", effort:"30m",  delegatedTo:"", notes:"Vows, rings, touch-up kit, change of clothes, card for partner",    lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+
+  // ── FRIDAY MAY 1 (rehearsal day) ──────────────────────────────────────────
+  { id:"t063", date:"2026-05-01", originalDate:"2026-05-01", task:"Wedding rehearsal",                  category:"Logistics",    project:"Wedding", priority:"High",   status:"Not started", effort:"2h+",  delegatedTo:"", notes:"Full ceremony run-through; confirm all cues with officiants",       lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+  { id:"t064", date:"2026-05-01", originalDate:"2026-05-01", task:"Rehearsal dinner",                   category:"Logistics",    project:"Wedding", priority:"High",   status:"Not started", effort:"2h+",  delegatedTo:"", notes:"Be present; celebrate – don't stress about logistics tonight",       lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+
+  // ── SATURDAY MAY 2 (wedding eve) ──────────────────────────────────────────
+  { id:"t065", date:"2026-05-02", originalDate:"2026-05-02", task:"Wedding eve – venue / décor setup",  category:"Logistics",    project:"Wedding", priority:"High",   status:"Not started", effort:"2h+",  delegatedTo:"", notes:"Set up signage, centerpieces, any DIY décor not handled by vendor",  lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+  { id:"t066", date:"2026-05-02", originalDate:"2026-05-02", task:"Early night & rest",                 category:"Logistics",    project:"Wedding", priority:"High",   status:"Not started", effort:"15m",  delegatedTo:"", notes:"Phone away by 10pm; sleep early – tomorrow is the big day",          lightweight:true,  niceToHave:false, completed:false, rolledOverCount:0 },
+
+  // ── SUNDAY MAY 3: WEDDING DAY ─────────────────────────────────────────────
+  { id:"t067", date:"2026-05-03", originalDate:"2026-05-03", task:"🎊 WEDDING DAY – May 3, 2026",       category:"Logistics",    project:"Wedding", priority:"High",   status:"Not started", effort:"2h+",  delegatedTo:"", notes:"You made it. Breathe. Enjoy every single moment. 💍",               lightweight:false, niceToHave:false, completed:false, rolledOverCount:0 },
+
+];
+
+// ==============================================================
+// SECTION 3: STATE
+// ==============================================================
+
+let tasks = [];
+let editingId = null;
+
+let filters = { project:"", status:"", priority:"", date:"", rolledOnly:false, overdueOnly:false };
+let sortCfg  = { field:"date", dir:"asc" };
+
+function loadTasks() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) { tasks = JSON.parse(raw); return; }
+  } catch(e) {}
+  tasks = JSON.parse(JSON.stringify(SEED_TASKS));
+}
+
+function saveTasks() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+}
+
+// ==============================================================
+// SECTION 4: UTILITY FUNCTIONS
+// ==============================================================
+
+function addDays(ds, n) {
+  const d = new Date(ds + "T00:00:00");
+  d.setDate(d.getDate() + n);
+  return d.toISOString().slice(0, 10);
+}
+
+function isWeekend(ds) {
+  const day = new Date(ds + "T00:00:00").getDay();
+  return day === 0 || day === 6;
+}
+
+function isBlocked(ds) { return BLOCKED_DATES.includes(ds); }
+
+function fmt(ds) {
+  return new Date(ds + "T00:00:00").toLocaleDateString("en-US", { month:"short", day:"numeric" });
+}
+function fmtFull(ds) {
+  return new Date(ds + "T00:00:00").toLocaleDateString("en-US", { weekday:"short", month:"short", day:"numeric" });
+}
+function weekday(ds) {
+  return new Date(ds + "T00:00:00").toLocaleDateString("en-US", { weekday:"short" });
+}
+
+function getAllDates() {
+  const out = []; let cur = PLAN_START;
+  while (cur <= PLAN_END) { out.push(cur); cur = addDays(cur, 1); }
+  return out;
+}
+
+function uid() { return "t" + Date.now() + Math.floor(Math.random() * 9999); }
+
+function esc(s) {
+  if (!s) return "";
+  return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+// ==============================================================
+// SECTION 5: ROLLOVER LOGIC
+// ==============================================================
+// Algorithm (plain English):
+//   1. Identify all incomplete tasks whose date is before APP_TODAY.
+//   2. Sort them oldest-first.
+//   3. Build a count map: how many non-done tasks already occupy each date.
+//   4. For each overdue task, starting from the day after its current date:
+//      a. If the candidate date is in the blocked window AND the task is NOT
+//         lightweight → skip (increment candidate by 1 day).
+//      b. If the current task count on that date meets or exceeds the daily
+//         cap → skip.
+//      c. Otherwise assign the task to that date, increment rolledOverCount,
+//         update the count map, and move on to the next task.
+//   5. Tasks that cannot find any eligible date before PLAN_END land on
+//      the last day as a fallback (shouldn't happen with current data).
+//   6. Persist the updated state.
+
+function runRollover() {
+  const today = APP_TODAY;
+
+  // Build live count of non-done tasks per date (AFTER any prior saves)
+  const countByDate = {};
+  for (const t of tasks) {
+    if (!t.completed) countByDate[t.date] = (countByDate[t.date] || 0) + 1;
+  }
+
+  const overdue = tasks
+    .filter(t => !t.completed && t.date < today)
+    .sort((a, b) => a.date.localeCompare(b.date));
+
+  for (const task of overdue) {
+    // Remove from current date bucket
+    if (countByDate[task.date] > 0) countByDate[task.date]--;
+
+    let candidate = addDays(task.date, 1);
+    let placed = false;
+
+    while (candidate <= PLAN_END) {
+      const blocked  = isBlocked(candidate);
+      const weekend  = isWeekend(candidate);
+      const cap      = blocked ? MAX_BLOCKED : weekend ? MAX_WEEKEND : MAX_WEEKDAY;
+      const curCount = countByDate[candidate] || 0;
+
+      if (blocked && !task.lightweight) { candidate = addDays(candidate, 1); continue; }
+      if (curCount >= cap)              { candidate = addDays(candidate, 1); continue; }
+
+      task.date = candidate;
+      task.rolledOverCount = (task.rolledOverCount || 0) + 1;
+      countByDate[candidate] = curCount + 1;
+      placed = true;
+      break;
+    }
+
+    if (!placed) task.date = PLAN_END; // fallback
+  }
+
+  saveTasks();
+}
+
+// ==============================================================
+// SECTION 6: RENDERING
+// ==============================================================
+
+function renderAll() {
+  renderCards();
+  renderTodayFocus();
+  renderCal();
+  renderTable();
+}
+
+// ── Summary cards ──────────────────────────────────────────────
+function renderCards() {
+  const today = APP_TODAY;
+  const total    = tasks.length;
+  const done     = tasks.filter(t => t.completed).length;
+  const rem      = tasks.filter(t => !t.completed).length;
+  const overdue  = tasks.filter(t => !t.completed && t.date < today).length;
+  const rolled   = tasks.filter(t => t.rolledOverCount > 0 && !t.completed).length;
+  const wLeft    = tasks.filter(t => !t.completed && (t.project==="Wedding"||t.project==="Both")).length;
+  const mLeft    = tasks.filter(t => !t.completed && (t.project==="Moving"||t.project==="Both")).length;
+
+  const cards = [
+    { label:"Total",         val:total,  cls:""         },
+    { label:"Completed",     val:done,   cls:"c-success" },
+    { label:"Remaining",     val:rem,    cls:rem>20?"c-warning":"" },
+    { label:"Overdue",       val:overdue,cls:overdue>0?"c-danger":"c-success" },
+    { label:"Rolled Over",   val:rolled, cls:rolled>0?"c-warning":"c-neutral" },
+    { label:"Wedding Left",  val:wLeft,  cls:"c-wedding" },
+    { label:"Moving Left",   val:mLeft,  cls:"c-moving"  },
+  ];
+  document.getElementById("summary-cards").innerHTML =
+    cards.map(c=>`<div class="card"><div class="card-label">${c.label}</div><div class="card-value ${c.cls}">${c.val}</div></div>`).join("");
+}
+
+// ── Today focus panel ──────────────────────────────────────────
+function renderTodayFocus() {
+  document.getElementById("today-date-label").textContent = fmtFull(APP_TODAY);
+
+  const todayTasks = tasks
+    .filter(t => t.date === APP_TODAY && !t.completed)
+    .sort((a,b) => PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority]);
+
+  const mustDo = todayTasks.filter(t => !t.niceToHave).slice(0, 3);
+  const nice   = todayTasks.filter(t => t.niceToHave);
+
+  let html = "";
+  if (!mustDo.length && !nice.length) {
+    html = `<span style="color:var(--text2);font-size:13px">All caught up for today! 🎉</span>`;
+  }
+  mustDo.forEach(t => { html += `<span class="focus-chip">${pIcon(t.priority)} ${esc(t.task)}</span>`; });
+  nice.forEach(t   => { html += `<span class="focus-chip nice">✨ ${esc(t.task)}</span>`; });
+
+  document.getElementById("focus-tasks").innerHTML = html;
+}
+
+// ── Calendar sidebar ───────────────────────────────────────────
+function renderCal() {
+  const byDate = {};
+  for (const t of tasks) { if (!byDate[t.date]) byDate[t.date]=[]; byDate[t.date].push(t); }
+
+  let html = "";
+  for (const ds of getAllDates()) {
+    const ts    = byDate[ds] || [];
+    const total = ts.length;
+    const done  = ts.filter(t=>t.completed).length;
+    const hasW  = ts.some(t=>t.project==="Wedding"||t.project==="Both");
+    const hasM  = ts.some(t=>t.project==="Moving"||t.project==="Both");
+
+    let cls = "cal-day";
+    if (ds === APP_TODAY)    cls += " today-day";
+    if (isBlocked(ds))       cls += " blocked-day";
+    if (ds === WEDDING_DATE) cls += " wedding-day";
+    else if (ds === MOVE_DATE) cls += " move-day";
+    if (filters.date === ds) cls += " active";
+
+    const cntCls = total>0 && done===total ? "cal-day-count all-done" : "cal-day-count";
+    let tags = "";
+    if (hasW)        tags += `<span class="cal-tag" style="background:var(--wedding-light);color:var(--wedding)">W</span>`;
+    if (hasM)        tags += `<span class="cal-tag" style="background:var(--moving-light);color:var(--moving)">M</span>`;
+    if (isBlocked(ds)) tags += `<span class="cal-tag" style="background:var(--surface2);color:var(--text2)">✈</span>`;
+    if (ds===WEDDING_DATE) tags += `<span class="cal-tag" style="background:var(--wedding-light);color:var(--wedding)">💍</span>`;
+    if (ds===MOVE_DATE)    tags += `<span class="cal-tag" style="background:var(--moving-light);color:var(--moving)">📦</span>`;
+
+    html += `
+      <div class="${cls}" data-date="${ds}" onclick="filterByDate('${ds}')">
+        <div class="cal-day-row">
+          <span class="cal-day-date">${fmt(ds)}</span>
+          <span class="cal-day-wd">${weekday(ds)}</span>
+          ${total>0 ? `<span class="${cntCls}">${done}/${total}</span>` : ""}
+        </div>
+        ${tags ? `<div class="cal-tags">${tags}</div>` : ""}
+      </div>`;
+  }
+  document.getElementById("cal-strip").innerHTML = html;
+}
+
+// ── Task table ─────────────────────────────────────────────────
+function renderTable() {
+  const today = APP_TODAY;
+  let rows = [...tasks];
+
+  if (filters.project)   rows = rows.filter(t=>t.project===filters.project);
+  if (filters.status)    rows = rows.filter(t=>t.status===filters.status);
+  if (filters.priority)  rows = rows.filter(t=>t.priority===filters.priority);
+  if (filters.date)      rows = rows.filter(t=>t.date===filters.date);
+  if (filters.rolledOnly)  rows = rows.filter(t=>t.rolledOverCount>0);
+  if (filters.overdueOnly) rows = rows.filter(t=>!t.completed && t.date<today);
+
+  rows.sort((a,b)=>{
+    let av,bv;
+    switch(sortCfg.field){
+      case "date":     av=a.date;                    bv=b.date;     break;
+      case "priority": av=PRIORITY_ORDER[a.priority];bv=PRIORITY_ORDER[b.priority]; break;
+      case "project":  av=a.project;                 bv=b.project;  break;
+      case "status":   av=STATUS_ORDER[a.status];    bv=STATUS_ORDER[b.status];   break;
+      default: av=a.date; bv=b.date;
+    }
+    if(av<bv) return sortCfg.dir==="asc"?-1:1;
+    if(av>bv) return sortCfg.dir==="asc"?1:-1;
+    if(sortCfg.field!=="date"){
+      if(a.date<b.date) return -1; if(a.date>b.date) return 1;
+    }
+    return PRIORITY_ORDER[a.priority]-PRIORITY_ORDER[b.priority];
+  });
+
+  // Update sort indicators
+  document.querySelectorAll("th[data-sort]").forEach(th=>{
+    th.classList.remove("sort-asc","sort-desc");
+    if(th.dataset.sort===sortCfg.field)
+      th.classList.add(sortCfg.dir==="asc"?"sort-asc":"sort-desc");
+  });
+
+  const tbody = document.getElementById("task-tbody");
+  if (!rows.length) {
+    tbody.innerHTML=`<tr><td colspan="9" class="empty-state">No tasks match the current filters.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = rows.map(t=>{
+    const isToday  = t.date===today;
+    const overdue  = !t.completed && t.date<today;
+    const rolled   = t.rolledOverCount>0;
+    const done     = t.completed;
+
+    let rowCls = "";
+    if(done)        rowCls="row-done";
+    else if(overdue) rowCls="row-overdue";
+    else if(rolled)  rowCls="row-rolled";
+    else if(isToday) rowCls="row-today";
+
+    const projCls  = "badge badge-"+t.project.toLowerCase().replace(/ /g,"");
+    const prioCls  = "badge badge-"+t.priority.toLowerCase();
+    const statCls  = "badge badge-"+t.status.toLowerCase().replace(/ /g,"");
+
+    let nameHtml = `<span class="task-name">${esc(t.task)}</span>`;
+    if(rolled && !done) nameHtml+=`<span class="mini-badge mb-rolled">↩ ${fmt(t.originalDate)}</span>`;
+    if(overdue)         nameHtml+=`<span class="mini-badge mb-overdue">⚠ overdue</span>`;
+    if(isToday && !done) nameHtml+=`<span class="mini-badge mb-today">today</span>`;
+    if(t.niceToHave)    nameHtml+=` <span style="font-size:10px;color:var(--text2)">✨</span>`;
+    if(t.delegatedTo)   nameHtml+=`<div class="task-meta">👤 ${esc(t.delegatedTo)}</div>`;
+    if(t.notes)         nameHtml+=`<div class="task-meta">${esc(t.notes)}</div>`;
+
+    return `<tr class="${rowCls}" data-id="${t.id}">
+      <td style="text-align:center"><input type="checkbox" ${done?"checked":""} onchange="toggleTask('${t.id}',this.checked)" style="accent-color:var(--accent)"></td>
+      <td class="date-label">${fmt(t.date)}<br><span class="date-wd">${weekday(t.date)}</span></td>
+      <td>${nameHtml}</td>
+      <td style="font-size:11px;color:var(--text2);white-space:nowrap">${esc(t.category)}</td>
+      <td><span class="${projCls}">${t.project}</span></td>
+      <td><span class="${prioCls}">${pIcon(t.priority)} ${t.priority}</span></td>
+      <td><span class="${statCls}">${t.status}</span></td>
+      <td><span class="effort-pill">${t.effort}</span></td>
+      <td><button class="btn btn-sm edit-btn" onclick="openModal('${t.id}')">Edit</button></td>
+    </tr>`;
+  }).join("");
+}
+
+function pIcon(p){ return p==="High"?"🔴":p==="Medium"?"🟡":"🟢"; }
+
+// ==============================================================
+// SECTION 7: INTERACTIONS
+// ==============================================================
+
+function toggleTask(id, checked) {
+  const t = tasks.find(t=>t.id===id);
+  if(!t) return;
+  t.completed = checked;
+  t.status    = checked ? "Done" : "Not started";
+  saveTasks();
+  renderAll();
+}
+
+function filterByDate(ds) {
+  if(filters.date===ds){ filters.date=""; document.getElementById("f-date").value=""; }
+  else { filters.date=ds; document.getElementById("f-date").value=ds; }
+  renderTable();
+  renderCal();
+}
+
+function openModal(id) {
+  const t = id ? tasks.find(x=>x.id===id) : null;
+  editingId = id || null;
+  document.getElementById("modal-title").textContent = t ? "Edit Task" : "New Task";
+  document.getElementById("m-task").value       = t?.task||"";
+  document.getElementById("m-date").value       = t?.date||APP_TODAY;
+  document.getElementById("m-project").value    = t?.project||"Wedding";
+  document.getElementById("m-category").value   = t?.category||"";
+  document.getElementById("m-effort").value     = t?.effort||"1h";
+  document.getElementById("m-priority").value   = t?.priority||"Medium";
+  document.getElementById("m-status").value     = t?.status||"Not started";
+  document.getElementById("m-delegated").value  = t?.delegatedTo||"";
+  document.getElementById("m-notes").value      = t?.notes||"";
+  document.getElementById("m-lightweight").checked = t?.lightweight||false;
+  document.getElementById("m-nth").checked      = t?.niceToHave||false;
+  document.getElementById("m-meta").innerHTML   = t
+    ? `Original: <b>${fmtFull(t.originalDate)}</b> &nbsp;·&nbsp; Rolled: <b>${t.rolledOverCount}×</b> &nbsp;·&nbsp; ID: ${t.id}`
+    : "";
+  document.getElementById("modal-overlay").classList.add("open");
+}
+
+function closeModal() {
+  document.getElementById("modal-overlay").classList.remove("open");
+  editingId = null;
+}
+
+function saveModal() {
+  const data = {
+    task:        document.getElementById("m-task").value.trim(),
+    date:        document.getElementById("m-date").value,
+    project:     document.getElementById("m-project").value,
+    category:    document.getElementById("m-category").value.trim(),
+    effort:      document.getElementById("m-effort").value,
+    priority:    document.getElementById("m-priority").value,
+    status:      document.getElementById("m-status").value,
+    delegatedTo: document.getElementById("m-delegated").value.trim(),
+    notes:       document.getElementById("m-notes").value.trim(),
+    lightweight: document.getElementById("m-lightweight").checked,
+    niceToHave:  document.getElementById("m-nth").checked,
+    completed:   document.getElementById("m-status").value==="Done",
+  };
+  if(!data.task){ alert("Task name is required."); return; }
+  if(!data.date){ alert("Date is required."); return; }
+
+  if(editingId) {
+    const idx = tasks.findIndex(t=>t.id===editingId);
+    if(idx!==-1) tasks[idx] = { ...tasks[idx], ...data };
+  } else {
+    tasks.push({ id:uid(), originalDate:data.date, rolledOverCount:0, ...data });
+  }
+  saveTasks(); closeModal(); renderAll();
+}
+
+function deleteTask(id) {
+  if(!confirm("Delete this task?")) return;
+  tasks = tasks.filter(t=>t.id!==id);
+  saveTasks(); closeModal(); renderAll();
+}
+
+function dupeTask(id) {
+  const t = tasks.find(x=>x.id===id);
+  if(!t) return;
+  tasks.push({ ...t, id:uid(), task:t.task+" (copy)", completed:false, rolledOverCount:0, originalDate:t.date });
+  saveTasks(); closeModal(); renderAll();
+}
+
+function resetAll() {
+  if(!confirm("Reset ALL tasks to the original seed schedule? All progress will be lost.")) return;
+  tasks = JSON.parse(JSON.stringify(SEED_TASKS));
+  saveTasks(); renderAll();
+}
+
+function exportCSV() {
+  const hdr = ["id","date","originalDate","task","category","project","priority","status","effort","delegatedTo","notes","lightweight","niceToHave","completed","rolledOverCount"];
+  const rows = tasks.map(t=>hdr.map(k=>{
+    const v = t[k];
+    return (typeof v==="string" && (v.includes(",")||v.includes('"')||v.includes("\n")))
+      ? `"${v.replace(/"/g,'""')}"` : (v??""  );
+  }).join(","));
+  dl([hdr.join(","), ...rows].join("\n"), "wedding-move-tasks.csv", "text/csv");
+}
+
+function exportJSON() {
+  dl(JSON.stringify(tasks, null, 2), "wedding-move-tasks.json", "application/json");
+}
+
+function importJSON(file) {
+  const r = new FileReader();
+  r.onload = e => {
+    try {
+      const arr = JSON.parse(e.target.result);
+      if(!Array.isArray(arr)) throw new Error("Expected array");
+      tasks = arr; saveTasks(); renderAll();
+      alert(`Imported ${tasks.length} tasks.`);
+    } catch(err) { alert("Import failed: "+err.message); }
+  };
+  r.readAsText(file);
+}
+
+function dl(content, name, type) {
+  const a = Object.assign(document.createElement("a"), {
+    href: URL.createObjectURL(new Blob([content],{type})),
+    download: name
+  });
+  a.click();
+}
+
+function quickAdd() {
+  const name = document.getElementById("qa-name").value.trim();
+  if(!name) return;
+  const date = document.getElementById("qa-date").value || APP_TODAY;
+  tasks.push({
+    id:uid(), date, originalDate:date,
+    task:name, category:"Misc",
+    project:  document.getElementById("qa-project").value,
+    priority: document.getElementById("qa-priority").value,
+    status:"Not started", effort:"30m",
+    delegatedTo:"", notes:"",
+    lightweight:false, niceToHave:false, completed:false, rolledOverCount:0
+  });
+  saveTasks();
+  document.getElementById("qa-name").value = "";
+  renderAll();
+}
+
+// ==============================================================
+// SECTION 8: EVENT BINDING
+// ==============================================================
+
+function bindAll() {
+  // Filters
+  const fmap = {
+    "f-project":  v=>{ filters.project=v; renderTable(); renderCal(); },
+    "f-status":   v=>{ filters.status=v;  renderTable(); },
+    "f-priority": v=>{ filters.priority=v;renderTable(); },
+    "f-date":     v=>{ filters.date=v;    renderTable(); renderCal(); },
+  };
+  Object.entries(fmap).forEach(([id,fn])=>{
+    document.getElementById(id).addEventListener("change", e=>fn(e.target.value));
+  });
+  document.getElementById("f-rolled").addEventListener("change", e=>{ filters.rolledOnly=e.target.checked; renderTable(); });
+  document.getElementById("f-overdue").addEventListener("change", e=>{ filters.overdueOnly=e.target.checked; renderTable(); });
+  document.getElementById("s-field").addEventListener("change", e=>{ sortCfg.field=e.target.value; renderTable(); });
+  document.getElementById("s-dir").addEventListener("change", e=>{ sortCfg.dir=e.target.value; renderTable(); });
+
+  document.getElementById("btn-clear-date").addEventListener("click", ()=>{
+    filters.date=""; document.getElementById("f-date").value=""; renderTable(); renderCal();
+  });
+  document.getElementById("btn-clear-filters").addEventListener("click", ()=>{
+    filters={project:"",status:"",priority:"",date:"",rolledOnly:false,overdueOnly:false};
+    ["f-project","f-status","f-priority","f-date"].forEach(id=>document.getElementById(id).value="");
+    document.getElementById("f-rolled").checked=false;
+    document.getElementById("f-overdue").checked=false;
+    renderTable(); renderCal();
+  });
+
+  // Header actions
+  document.getElementById("btn-reset").addEventListener("click", resetAll);
+  document.getElementById("btn-export-csv").addEventListener("click", exportCSV);
+  document.getElementById("btn-export-json").addEventListener("click", exportJSON);
+  document.getElementById("btn-import-json").addEventListener("click", ()=>document.getElementById("file-import").click());
+  document.getElementById("file-import").addEventListener("change", e=>{ if(e.target.files[0]) importJSON(e.target.files[0]); e.target.value=""; });
+
+  document.getElementById("btn-today").addEventListener("click", ()=>{
+    filterByDate(APP_TODAY);
+    document.getElementById("today-focus").scrollIntoView({behavior:"smooth"});
+    const el=document.querySelector(`.cal-day[data-date="${APP_TODAY}"]`);
+    if(el) el.scrollIntoView({block:"center",behavior:"smooth"});
+  });
+
+  document.getElementById("btn-theme").addEventListener("click", ()=>{
+    const html=document.documentElement;
+    const dark=html.dataset.theme==="dark";
+    html.dataset.theme=dark?"light":"dark";
+    document.getElementById("btn-theme").textContent=dark?"🌙 Dark":"☀️ Light";
+    localStorage.setItem("planner_theme", html.dataset.theme);
+  });
+
+  // Modal
+  document.getElementById("modal-close").addEventListener("click", closeModal);
+  document.getElementById("m-cancel").addEventListener("click", closeModal);
+  document.getElementById("m-save").addEventListener("click", saveModal);
+  document.getElementById("m-delete").addEventListener("click", ()=>{ if(editingId) deleteTask(editingId); });
+  document.getElementById("m-dupe").addEventListener("click", ()=>{ if(editingId) dupeTask(editingId); });
+  document.getElementById("modal-overlay").addEventListener("click", e=>{ if(e.target===e.currentTarget) closeModal(); });
+
+  // Quick add
+  document.getElementById("btn-qa-add").addEventListener("click", quickAdd);
+  document.getElementById("qa-name").addEventListener("keydown", e=>{ if(e.key==="Enter") quickAdd(); });
+
+  // Table header sort
+  document.querySelectorAll("th[data-sort]").forEach(th=>{
+    th.addEventListener("click", ()=>{
+      const f=th.dataset.sort;
+      if(sortCfg.field===f) sortCfg.dir=sortCfg.dir==="asc"?"desc":"asc";
+      else { sortCfg.field=f; sortCfg.dir="asc"; }
+      document.getElementById("s-field").value=sortCfg.field;
+      document.getElementById("s-dir").value=sortCfg.dir;
+      renderTable();
+    });
+  });
+
+  // Keyboard shortcuts
+  document.addEventListener("keydown", e=>{
+    if(e.key==="Escape") closeModal();
+    if((e.ctrlKey||e.metaKey) && e.key==="k"){ e.preventDefault(); document.getElementById("qa-name").focus(); }
+  });
+}
+
+// ==============================================================
+// SECTION 9: INIT
+// ==============================================================
+
+function init() {
+  // Restore saved theme
+  const savedTheme = localStorage.getItem("planner_theme");
+  if(savedTheme){
+    document.documentElement.dataset.theme = savedTheme;
+    document.getElementById("btn-theme").textContent = savedTheme==="dark"?"☀️ Light":"🌙 Dark";
+  }
+
+  // Default quick-add date
+  document.getElementById("qa-date").value = APP_TODAY;
+
+  // Load data & run rollover
+  loadTasks();
+  runRollover();
+
+  // Wire up all events
+  bindAll();
+
+  // Render everything
+  renderAll();
+
+  // Scroll sidebar to today
+  setTimeout(()=>{
+    const el=document.querySelector(`.cal-day[data-date="${APP_TODAY}"]`);
+    if(el) el.scrollIntoView({block:"center",behavior:"smooth"});
+  }, 80);
+}
+
+init();
+</script>
+</body>
+</html>
