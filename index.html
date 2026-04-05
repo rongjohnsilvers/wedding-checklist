@@ -671,6 +671,7 @@
             <th data-sort="priority">Priority</th>
             <th data-sort="status">Status</th>
             <th>Effort</th>
+            <th data-sort="assignee">Assignee</th>
             <th style="width:28px"></th>
           </tr>
         </thead>
@@ -1197,6 +1198,7 @@ function renderTable() {
       case "priority": av=PRIORITY_ORDER[a.priority];bv=PRIORITY_ORDER[b.priority]; break;
       case "project":  av=a.project;                 bv=b.project;  break;
       case "status":   av=STATUS_ORDER[a.status];    bv=STATUS_ORDER[b.status];   break;
+      case "assignee": av=a.delegatedTo||"zzz";      bv=b.delegatedTo||"zzz";     break;
       default: av=a.date; bv=b.date;
     }
     if(av<bv) return sortCfg.dir==="asc"?-1:1;
@@ -1216,7 +1218,7 @@ function renderTable() {
 
   const tbody = document.getElementById("task-tbody");
   if (!rows.length) {
-    tbody.innerHTML=`<tr><td colspan="10" class="empty-state">No tasks match the current filters.</td></tr>`;
+    tbody.innerHTML=`<tr><td colspan="11" class="empty-state">No tasks match the current filters.</td></tr>`;
     updateSelectAll();
     return;
   }
@@ -1253,7 +1255,6 @@ function taskRow(t, today) {
   if(overdue)         nameHtml+=`<span class="mini-badge mb-overdue">⚠ overdue</span>`;
   if(isToday && !done) nameHtml+=`<span class="mini-badge mb-today">today</span>`;
   if(t.niceToHave)    nameHtml+=` <span style="font-size:10px;color:var(--text2)">✨</span>`;
-  if(t.delegatedTo)   nameHtml+=`<div style="margin-top:3px">${assigneeBadge(t.delegatedTo)}</div>`;
   if(t.notes)         nameHtml+=`<div class="task-meta">${esc(t.notes)}</div>`;
 
   return `<tr class="${rowCls}" data-id="${t.id}">
@@ -1266,6 +1267,7 @@ function taskRow(t, today) {
     <td><span class="${prioCls}">${pIcon(t.priority)} ${t.priority}</span></td>
     <td><span class="${statCls}">${t.status}</span></td>
     <td><span class="effort-pill">${t.effort}</span></td>
+    <td>${t.delegatedTo ? assigneeBadge(t.delegatedTo) : `<span style="color:var(--text2);font-size:11px">—</span>`}</td>
     <td><button class="btn btn-sm edit-btn" onclick="openModal('${t.id}')">Edit</button></td>
   </tr>`;
 }
@@ -1338,7 +1340,7 @@ function renderGroupedView(groupKey) {
   // Render into the same table
   const tbody = document.getElementById("task-tbody");
   if(!rows.length) {
-    tbody.innerHTML = `<tr><td colspan="10" class="empty-state">No tasks match the current filters.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="11" class="empty-state">No tasks match the current filters.</td></tr>`;
     updateSelectAll();
     return;
   }
@@ -1365,7 +1367,7 @@ function renderGroupedView(groupKey) {
     }
 
     html += `<tr class="group-header-row${collapsed?" collapsed":""}" onclick="toggleGroup('${esc(key)}')">
-      <td colspan="10" style="${headerAccent}">
+      <td colspan="11" style="${headerAccent}">
         <span class="gh-toggle">▾</span>
         ${esc(key)}
         <span class="gh-stats">${done}/${total} done</span>
