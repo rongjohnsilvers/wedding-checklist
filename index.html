@@ -450,6 +450,113 @@
     .modal-meta { font-size: 11px; color: var(--text2); margin-top: 10px; }
 
     /* ==============================================================
+       COUNTDOWN BAR
+    ============================================================== */
+    .countdown-bar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 7px 20px;
+      display: flex;
+      gap: 24px;
+      align-items: center;
+      font-size: 13px;
+      flex-wrap: wrap;
+    }
+    .cd-item { display: flex; align-items: center; gap: 8px; }
+    .cd-label { color: var(--text2); }
+    .cd-days { font-weight: 800; font-size: 18px; line-height: 1; }
+    .cd-days.cd-urgent { color: var(--high); }
+    .cd-days.cd-soon   { color: var(--medium); }
+    .cd-days.cd-ok     { color: var(--low); }
+    .cd-date { font-size: 11px; color: var(--text2); }
+    .cd-sep  { width: 1px; height: 28px; background: var(--border); }
+    .cd-progress { flex: 1; min-width: 120px; }
+    .cd-pbar-wrap { height: 5px; background: var(--surface2); border-radius: 3px; overflow: hidden; margin-top: 3px; }
+    .cd-pbar { height: 100%; border-radius: 3px; transition: width 0.4s; }
+
+    /* ==============================================================
+       CONFLICT PANEL
+    ============================================================== */
+    .conflict-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .conflict-panel.has-conflicts { border-color: var(--overdue-border); }
+    .conflict-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 14px;
+      cursor: pointer;
+      user-select: none;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .conflict-header:hover { background: var(--surface2); }
+    .conflict-header .ch-toggle { font-size: 10px; transition: transform 0.15s; }
+    .conflict-panel.collapsed .ch-toggle { transform: rotate(-90deg); }
+    .conflict-body { padding: 0 14px 12px; display: flex; flex-direction: column; gap: 8px; }
+    .conflict-panel.collapsed .conflict-body { display: none; }
+    .conflict-day {
+      border-radius: 6px;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+    }
+    .conflict-day:hover { border-color: var(--accent); }
+    .conflict-day-header { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; font-weight: 600; font-size: 12px; }
+    .conflict-tag { font-size: 10px; padding: 1px 6px; border-radius: 8px; font-weight: 600; }
+    .ct-overload { background: var(--overdue-bg); color: var(--overdue-border); border: 1px solid var(--overdue-border); }
+    .ct-clash    { background: var(--rolled-bg); color: var(--wedding); border: 1px solid var(--rolled-border); }
+    .conflict-tasks { display: flex; flex-wrap: wrap; gap: 4px; }
+    .conf-task-chip { font-size: 11px; padding: 1px 7px; border-radius: 6px; }
+
+    /* ==============================================================
+       EFFORT BARS (calendar sidebar)
+    ============================================================== */
+    .effort-bar-wrap { margin-top: 3px; height: 4px; background: var(--surface2); border-radius: 2px; overflow: hidden; }
+    .effort-bar { height: 100%; border-radius: 2px; transition: width 0.3s; }
+    .eb-ok      { background: var(--low); }
+    .eb-warn    { background: var(--medium); }
+    .eb-over    { background: var(--high); }
+    .cal-effort-label { font-size: 9px; color: var(--text2); margin-top: 1px; }
+
+    /* ==============================================================
+       BLOCKED TASKS (dependency)
+    ============================================================== */
+    tr.row-blocked td { opacity: 0.65; }
+    tr.row-blocked .task-name { color: var(--text2); }
+    .mb-blocked { background: #546e7a; color: #fff; }
+
+    /* ==============================================================
+       DEPENDENCY PICKER (modal)
+    ============================================================== */
+    .dep-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 6px; min-height: 22px; }
+    .dep-chip {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 11px; padding: 2px 8px; border-radius: 8px;
+      cursor: pointer; border: 1px solid var(--border);
+      background: var(--accent-light); color: var(--accent);
+    }
+    .dep-chip:hover { background: #ffebee; color: var(--high); border-color: var(--high); }
+    .dep-chip.dep-done { background: var(--done-bg); color: var(--low); border-color: var(--low); }
+    .dep-results {
+      border: 1px solid var(--border); border-radius: 5px;
+      max-height: 140px; overflow-y: auto; display: none;
+      background: var(--surface);
+    }
+    .dep-results.open { display: block; }
+    .dep-result-item {
+      padding: 6px 10px; cursor: pointer; font-size: 12px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .dep-result-item:last-child { border-bottom: none; }
+    .dep-result-item:hover { background: var(--accent-light); color: var(--accent); }
+
+    /* ==============================================================
        MISC
     ============================================================== */
     .empty-state { text-align: center; padding: 36px; color: var(--text2); }
@@ -567,6 +674,11 @@
   </div>
 </header>
 
+<!-- ============================================================
+     COUNTDOWN BAR
+============================================================ -->
+<div class="countdown-bar" id="countdown-bar"></div>
+
 <div class="main-layout">
   <!-- ============================================================
        SIDEBAR: CALENDAR STRIP
@@ -580,6 +692,15 @@
        MAIN CONTENT
   ============================================================ -->
   <main class="main-content">
+    <!-- Conflict & overload detector -->
+    <div class="conflict-panel" id="conflict-panel">
+      <div class="conflict-header" onclick="toggleConflictPanel()">
+        <span class="ch-toggle">▾</span>
+        <span id="conflict-title">Checking schedule…</span>
+      </div>
+      <div class="conflict-body" id="conflict-body"></div>
+    </div>
+
     <!-- Summary cards -->
     <div class="summary-cards" id="summary-cards"></div>
 
@@ -736,6 +857,12 @@
       <label>Notes</label>
       <textarea id="m-notes"></textarea>
     </div>
+    <div class="form-group">
+      <label>Depends On <span style="font-weight:400;text-transform:none;font-size:11px">(must complete first)</span></label>
+      <div class="dep-chips" id="m-dep-chips"></div>
+      <input type="text" id="m-dep-search" placeholder="Search tasks to add dependency…" autocomplete="off" oninput="depSearch(this.value)" onfocus="depSearch(this.value)">
+      <div class="dep-results" id="m-dep-results"></div>
+    </div>
     <div class="form-row">
       <div class="form-group">
         <div class="form-check">
@@ -814,6 +941,16 @@ const MAX_BLOCKED      = 2;   // lightweight tasks allowed on blocked days
 
 const PRIORITY_ORDER = { High: 0, Medium: 1, Low: 2 };
 const STATUS_ORDER   = { "Not started": 0, "In progress": 1, "Done": 2 };
+
+// Effort string → hours (used for budget bars and conflict detection)
+const EFFORT_HOURS = { "15m": 0.25, "30m": 0.5, "1h": 1.0, "2h+": 2.5 };
+
+// Available hours per day type
+function dayBudget(ds) {
+  if (isBlocked(ds)) return 1;
+  if (isWeekend(ds)) return 8;
+  return 3; // average of 2–4 weekday hours
+}
 
 // ==============================================================
 // SECTION 2: SEED TASK DATA
@@ -963,6 +1100,9 @@ let sortCfg  = { field:"date", dir:"asc" };
 // Multi-select state
 let selectedIds = new Set();
 
+// Dependency modal state (temp while modal is open)
+let editingDeps = [];
+
 // Grouped view state
 let currentView    = "table";   // "table" | "category" | "assignee" | "priority"
 let collapsedGroups = new Set(); // which group keys are collapsed
@@ -1017,6 +1157,24 @@ function uid() { return "t" + Date.now() + Math.floor(Math.random() * 9999); }
 function esc(s) {
   if (!s) return "";
   return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+// Days between two ISO date strings (b - a)
+function daysBetween(a, b) {
+  return Math.round((new Date(b+"T00:00:00") - new Date(a+"T00:00:00")) / 86400000);
+}
+
+// Total effort-hours scheduled on a date (incomplete tasks only)
+function dayUsedHours(ds) {
+  return tasks
+    .filter(t => t.date===ds && !t.completed)
+    .reduce((s, t) => s + (EFFORT_HOURS[t.effort] || 1), 0);
+}
+
+// Returns true if task has at least one incomplete dependency
+function hasBlockedDeps(task) {
+  const deps = task.dependsOn || [];
+  return deps.some(id => { const d = tasks.find(x=>x.id===id); return d && !d.completed; });
 }
 
 // ==============================================================
@@ -1084,6 +1242,8 @@ function runRollover() {
 // ==============================================================
 
 function renderAll() {
+  renderCountdown();
+  renderConflicts();
   renderCards();
   renderTodayFocus();
   renderCal();
@@ -1164,6 +1324,12 @@ function renderCal() {
     if (ds===WEDDING_DATE) tags += `<span class="cal-tag" style="background:var(--wedding-light);color:var(--wedding)">💍</span>`;
     if (ds===MOVE_DATE)    tags += `<span class="cal-tag" style="background:var(--moving-light);color:var(--moving)">📦</span>`;
 
+    const used   = dayUsedHours(ds);
+    const budget = dayBudget(ds);
+    const pct    = Math.min(100, Math.round(used / budget * 100));
+    const ebCls  = pct >= 100 ? "eb-over" : pct >= 75 ? "eb-warn" : "eb-ok";
+    const effortLabel = used > 0 ? `${used.toFixed(used%1?1:0)}h / ${budget}h` : "";
+
     html += `
       <div class="${cls}" data-date="${ds}" onclick="filterByDate('${ds}')">
         <div class="cal-day-row">
@@ -1172,6 +1338,9 @@ function renderCal() {
           ${total>0 ? `<span class="${cntCls}">${done}/${total}</span>` : ""}
         </div>
         ${tags ? `<div class="cal-tags">${tags}</div>` : ""}
+        ${used > 0 ? `
+          <div class="effort-bar-wrap"><div class="effort-bar ${ebCls}" style="width:${pct}%"></div></div>
+          <div class="cal-effort-label">${effortLabel}</div>` : ""}
       </div>`;
   }
   document.getElementById("cal-strip").innerHTML = html;
@@ -1236,11 +1405,13 @@ function taskRow(t, today) {
   const overdue = !t.completed && t.date<today;
   const rolled  = t.rolledOverCount>0;
   const done    = t.completed;
+  const blocked = !done && hasBlockedDeps(t);
   const sel     = selectedIds.has(t.id);
 
   let rowCls = sel ? "row-selected" : "";
   if(!sel){
     if(done)         rowCls="row-done";
+    else if(blocked) rowCls="row-blocked";
     else if(overdue) rowCls="row-overdue";
     else if(rolled)  rowCls="row-rolled";
     else if(isToday) rowCls="row-today";
@@ -1251,8 +1422,9 @@ function taskRow(t, today) {
   const statCls = "badge badge-"+t.status.toLowerCase().replace(/ /g,"");
 
   let nameHtml = `<span class="task-name">${esc(t.task)}</span>`;
-  if(rolled && !done) nameHtml+=`<span class="mini-badge mb-rolled">↩ ${fmt(t.originalDate)}</span>`;
-  if(overdue)         nameHtml+=`<span class="mini-badge mb-overdue">⚠ overdue</span>`;
+  if(blocked)          nameHtml+=`<span class="mini-badge mb-blocked">🔒 blocked</span>`;
+  if(rolled && !done)  nameHtml+=`<span class="mini-badge mb-rolled">↩ ${fmt(t.originalDate)}</span>`;
+  if(overdue)          nameHtml+=`<span class="mini-badge mb-overdue">⚠ overdue</span>`;
   if(isToday && !done) nameHtml+=`<span class="mini-badge mb-today">today</span>`;
   if(t.niceToHave)    nameHtml+=` <span style="font-size:10px;color:var(--text2)">✨</span>`;
   if(t.notes)         nameHtml+=`<div class="task-meta">${esc(t.notes)}</div>`;
@@ -1530,6 +1702,182 @@ function renderAssigneeFilter() {
 }
 
 // ==============================================================
+// SECTION 6F: COUNTDOWN BAR
+// ==============================================================
+
+function renderCountdown() {
+  const today    = APP_TODAY;
+  const daysMove    = daysBetween(today, MOVE_DATE);
+  const daysWedding = daysBetween(today, WEDDING_DATE);
+
+  function cdClass(d) { return d <= 7 ? "cd-urgent" : d <= 14 ? "cd-soon" : "cd-ok"; }
+
+  // Progress: how far through the plan are we?
+  const totalDays   = daysBetween(PLAN_START, PLAN_END);
+  const elapsed     = Math.max(0, daysBetween(PLAN_START, today));
+  const planPct     = Math.min(100, Math.round(elapsed / totalDays * 100));
+
+  // Task completion progress
+  const total = tasks.length;
+  const done  = tasks.filter(t=>t.completed).length;
+  const taskPct = total ? Math.round(done/total*100) : 0;
+
+  document.getElementById("countdown-bar").innerHTML = `
+    <div class="cd-item">
+      <span style="font-size:18px">📦</span>
+      <div>
+        <div><span class="cd-days ${cdClass(daysMove)}">${daysMove < 0 ? "Done!" : daysMove}</span> <span class="cd-label">${daysMove < 0 ? "Move complete" : daysMove===0 ? "Move is TODAY" : "days to move"}</span></div>
+        <div class="cd-date">${fmtFull(MOVE_DATE)}</div>
+      </div>
+    </div>
+    <div class="cd-sep"></div>
+    <div class="cd-item">
+      <span style="font-size:18px">💍</span>
+      <div>
+        <div><span class="cd-days ${cdClass(daysWedding)}">${daysWedding < 0 ? "Done!" : daysWedding}</span> <span class="cd-label">${daysWedding < 0 ? "Married!" : daysWedding===0 ? "Wedding is TODAY 🎉" : "days to wedding"}</span></div>
+        <div class="cd-date">${fmtFull(WEDDING_DATE)}</div>
+      </div>
+    </div>
+    <div class="cd-sep"></div>
+    <div class="cd-item cd-progress">
+      <div style="flex:1">
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text2);margin-bottom:2px">
+          <span>Plan progress</span><span>${planPct}%</span>
+        </div>
+        <div class="cd-pbar-wrap"><div class="cd-pbar" style="width:${planPct}%;background:var(--accent)"></div></div>
+      </div>
+    </div>
+    <div class="cd-item cd-progress">
+      <div style="flex:1">
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text2);margin-bottom:2px">
+          <span>Tasks complete</span><span>${done}/${total} (${taskPct}%)</span>
+        </div>
+        <div class="cd-pbar-wrap"><div class="cd-pbar" style="width:${taskPct}%;background:${taskPct>=75?"var(--low)":taskPct>=40?"var(--medium)":"var(--high)"}"></div></div>
+      </div>
+    </div>`;
+}
+
+// ==============================================================
+// SECTION 6G: CONFLICT DETECTOR
+// ==============================================================
+// A conflict is any future incomplete day where:
+//   (a) CLASH  – has both Wedding AND Moving high-priority incomplete tasks, OR
+//   (b) OVERLOAD – total scheduled effort-hours exceeds the day's budget
+
+let conflictPanelCollapsed = false;
+
+function renderConflicts() {
+  const today = APP_TODAY;
+  const conflicts = [];
+
+  for (const ds of getAllDates()) {
+    if (ds < today) continue;
+    const dayTasks = tasks.filter(t => t.date===ds && !t.completed);
+    if (!dayTasks.length) continue;
+
+    const wHigh = dayTasks.filter(t => t.priority==="High" && (t.project==="Wedding"||t.project==="Both"));
+    const mHigh = dayTasks.filter(t => t.priority==="High" && (t.project==="Moving"||t.project==="Both"));
+    const used   = dayTasks.reduce((s,t)=>s+(EFFORT_HOURS[t.effort]||1),0);
+    const budget = dayBudget(ds);
+
+    const clash    = wHigh.length > 0 && mHigh.length > 0;
+    const overload = used > budget;
+
+    if (clash || overload) {
+      conflicts.push({ ds, clash, overload, used, budget, wHigh, mHigh, dayTasks });
+    }
+  }
+
+  const panel = document.getElementById("conflict-panel");
+  const titleEl = document.getElementById("conflict-title");
+  const bodyEl  = document.getElementById("conflict-body");
+
+  if (!conflicts.length) {
+    panel.classList.remove("has-conflicts");
+    titleEl.innerHTML = `✅ No schedule conflicts detected`;
+    bodyEl.innerHTML  = "";
+    if(!conflictPanelCollapsed) panel.classList.add("collapsed");
+    return;
+  }
+
+  panel.classList.add("has-conflicts");
+  if (!conflictPanelCollapsed) panel.classList.remove("collapsed");
+  titleEl.innerHTML = `⚠️ ${conflicts.length} schedule conflict${conflicts.length!==1?"s":""} — click to review`;
+
+  bodyEl.innerHTML = conflicts.map(c => {
+    const tags = [
+      c.clash    ? `<span class="conflict-tag ct-clash">Wedding + Moving clash</span>` : "",
+      c.overload ? `<span class="conflict-tag ct-overload">${c.used.toFixed(1)}h / ${c.budget}h budget</span>` : "",
+    ].filter(Boolean).join(" ");
+
+    const showTasks = [...new Set([...c.wHigh, ...c.mHigh, ...c.dayTasks])].slice(0, 5);
+    const chips = showTasks.map(t =>
+      `<span class="conf-task-chip badge badge-${t.project.toLowerCase()}">${pIcon(t.priority)} ${esc(t.task)}</span>`
+    ).join("");
+    const more = c.dayTasks.length > 5 ? `<span style="font-size:11px;color:var(--text2)">+${c.dayTasks.length-5} more</span>` : "";
+
+    return `<div class="conflict-day" onclick="filterByDate('${c.ds}')">
+      <div class="conflict-day-header">
+        <strong>${fmtFull(c.ds)}</strong> ${tags}
+      </div>
+      <div class="conflict-tasks">${chips}${more}</div>
+    </div>`;
+  }).join("");
+}
+
+function toggleConflictPanel() {
+  conflictPanelCollapsed = !conflictPanelCollapsed;
+  document.getElementById("conflict-panel").classList.toggle("collapsed", conflictPanelCollapsed);
+}
+
+// ==============================================================
+// SECTION 6H: DEPENDENCY PICKER
+// ==============================================================
+
+function renderDepChips() {
+  const el = document.getElementById("m-dep-chips");
+  if (!editingDeps.length) {
+    el.innerHTML = `<span style="font-size:11px;color:var(--text2)">None — search below to add</span>`;
+    return;
+  }
+  el.innerHTML = editingDeps.map(id => {
+    const t = tasks.find(x=>x.id===id);
+    const label = t ? esc(t.task) : id;
+    const done  = t?.completed;
+    return `<span class="dep-chip ${done?"dep-done":""}" onclick="removeDep('${id}')" title="Click to remove">${label} ×</span>`;
+  }).join("");
+}
+
+function depSearch(q) {
+  const resultsEl = document.getElementById("m-dep-results");
+  if (!q.trim()) { resultsEl.classList.remove("open"); return; }
+  const matches = tasks
+    .filter(t => t.id !== editingId && !editingDeps.includes(t.id) && t.task.toLowerCase().includes(q.toLowerCase()))
+    .slice(0, 8);
+  if (!matches.length) { resultsEl.classList.remove("open"); return; }
+  resultsEl.classList.add("open");
+  resultsEl.innerHTML = matches.map(t =>
+    `<div class="dep-result-item" onclick="addDep('${t.id}')">
+      <span class="badge badge-${t.project.toLowerCase()}">${t.project}</span>
+      ${pIcon(t.priority)} ${esc(t.task)}
+      <span style="font-size:10px;color:var(--text2);margin-left:auto">${fmt(t.date)}</span>
+    </div>`
+  ).join("");
+}
+
+function addDep(id) {
+  if (!editingDeps.includes(id)) editingDeps.push(id);
+  document.getElementById("m-dep-search").value = "";
+  document.getElementById("m-dep-results").classList.remove("open");
+  renderDepChips();
+}
+
+function removeDep(id) {
+  editingDeps = editingDeps.filter(x=>x!==id);
+  renderDepChips();
+}
+
+// ==============================================================
 // SECTION 7: INTERACTIONS
 // ==============================================================
 
@@ -1567,12 +1915,19 @@ function openModal(id) {
   document.getElementById("m-meta").innerHTML   = t
     ? `Original: <b>${fmtFull(t.originalDate)}</b> &nbsp;·&nbsp; Rolled: <b>${t.rolledOverCount}×</b> &nbsp;·&nbsp; ID: ${t.id}`
     : "";
+  // Dependency picker
+  editingDeps = [...(t?.dependsOn || [])];
+  document.getElementById("m-dep-search").value = "";
+  document.getElementById("m-dep-results").classList.remove("open");
+  renderDepChips();
   document.getElementById("modal-overlay").classList.add("open");
 }
 
 function closeModal() {
   document.getElementById("modal-overlay").classList.remove("open");
+  document.getElementById("m-dep-results").classList.remove("open");
   editingId = null;
+  editingDeps = [];
 }
 
 function saveModal() {
@@ -1589,6 +1944,7 @@ function saveModal() {
     lightweight: document.getElementById("m-lightweight").checked,
     niceToHave:  document.getElementById("m-nth").checked,
     completed:   document.getElementById("m-status").value==="Done",
+    dependsOn:   [...editingDeps],
   };
   if(!data.task){ alert("Task name is required."); return; }
   if(!data.date){ alert("Date is required."); return; }
@@ -1772,6 +2128,13 @@ function bindAll() {
   document.addEventListener("keydown", e=>{
     if(e.key==="Escape") closeModal();
     if((e.ctrlKey||e.metaKey) && e.key==="k"){ e.preventDefault(); document.getElementById("qa-name").focus(); }
+  });
+
+  // Close dep search results on outside click
+  document.addEventListener("click", e=>{
+    const dr = document.getElementById("m-dep-results");
+    const ds = document.getElementById("m-dep-search");
+    if(dr && ds && !dr.contains(e.target) && e.target!==ds) dr.classList.remove("open");
   });
 }
 
