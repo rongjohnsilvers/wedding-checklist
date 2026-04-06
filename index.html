@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Wedding + Move Planner · Apr 5 – May 3, 2026</title>
+  <!-- Firebase SDKs (compat build, no bundler required) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
   <style>
     /* ==============================================================
        VARIABLES & THEMING
@@ -93,6 +96,19 @@
     .app-header h1 .accent { color: var(--accent); }
     .app-header h1 .muted { font-weight: 400; color: var(--text2); font-size: 13px; }
     .header-actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+    .sync-dot {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 11px; color: var(--text2); white-space: nowrap;
+    }
+    .sync-dot::before {
+      content: ""; display: inline-block;
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--text2);
+    }
+    .sync-dot.syncing::before  { background: var(--medium); animation: pulse 1s infinite; }
+    .sync-dot.synced::before   { background: var(--low); }
+    .sync-dot.offline::before  { background: var(--high); }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
     /* ==============================================================
        LAYOUT
@@ -625,6 +641,7 @@
 <header class="app-header">
   <h1>💍 Wedding <span class="accent">&amp;</span> Move Planner <span class="muted">Apr 5 – May 3, 2026</span></h1>
   <div class="header-actions">
+    <span class="sync-dot syncing" id="sync-indicator">Connecting…</span>
     <button class="btn btn-sm" id="btn-today">📌 Today</button>
     <button class="btn btn-sm" id="btn-export-csv">↓ CSV</button>
     <button class="btn btn-sm" id="btn-export-json">↓ JSON</button>
@@ -1059,6 +1076,39 @@ let editingDeps = [];
 let currentView    = "table";   // "table" | "category" | "assignee" | "priority"
 let collapsedGroups = new Set(); // which group keys are collapsed
 
+// ==============================================================
+// FIREBASE SETUP
+// ==============================================================
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAAV263aK4Roc85hC7zOY7cw5pDxozQMpQ",
+  authDomain: "wedding-checklist-c5055.firebaseapp.com",
+  databaseURL: "https://wedding-checklist-c5055-default-rtdb.firebaseio.com",
+  projectId: "wedding-checklist-c5055",
+  storageBucket: "wedding-checklist-c5055.firebasestorage.app",
+  messagingSenderId: "27220184322",
+  appId: "1:27220184322:web:56b1fe87591b951ffa061b"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db      = firebase.database();
+const DB_PATH = "tasks";
+
+// Debounce so rapid UI interactions batch into one write
+let _saveTimer = null;
+function saveTasks() {
+  // Always mirror to localStorage for offline resilience
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+  setSyncStatus("syncing");
+  clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(() => {
+    db.ref(DB_PATH).set(tasks)
+      .then(() => setSyncStatus("synced"))
+      .catch(() => setSyncStatus("offline"));
+  }, 400);
+}
+
+// loadTasks is now only used as a local fallback before Firebase responds
 function loadTasks() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -1067,8 +1117,13 @@ function loadTasks() {
   tasks = JSON.parse(JSON.stringify(SEED_TASKS));
 }
 
-function saveTasks() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+function setSyncStatus(state) {
+  const el = document.getElementById("sync-indicator");
+  if (!el) return;
+  el.className = "sync-dot " + state;
+  el.textContent = state === "syncing" ? "Saving…"
+                 : state === "synced"  ? "Synced"
+                 : "Offline";
 }
 
 // ==============================================================
@@ -1850,7 +1905,7 @@ function dupeTask(id) {
 }
 
 function resetAll() {
-  if(!confirm("Reset ALL tasks to the original seed schedule? All progress will be lost.")) return;
+  if(!confirm("Reset ALL tasks for ALL users to the original seed schedule? All progress will be lost.")) return;
   tasks = JSON.parse(JSON.stringify(SEED_TASKS));
   saveTasks(); renderAll();
 }
@@ -2031,14 +2086,10 @@ function init() {
   // Default quick-add date
   document.getElementById("qa-date").value = APP_TODAY;
 
-  // Load data & run rollover
+  // Render UI immediately using local cache while Firebase loads
   loadTasks();
   runRollover();
-
-  // Wire up all events
   bindAll();
-
-  // Render everything
   renderAll();
 
   // Scroll sidebar to today
@@ -2046,6 +2097,44 @@ function init() {
     const el=document.querySelector(`.cal-day[data-date="${APP_TODAY}"]`);
     if(el) el.scrollIntoView({block:"center",behavior:"smooth"});
   }, 80);
+
+  // ── Firebase real-time listener ─────────────────────────────
+  // Fires once on load (with current DB state) then on every remote change.
+  db.ref(DB_PATH).on("value", snapshot => {
+    const remote = snapshot.val();
+
+    if (!remote || !Array.isArray(remote) || remote.length === 0) {
+      // Firebase is empty — this visitor is the first; seed it with local data
+      setSyncStatus("syncing");
+      db.ref(DB_PATH).set(tasks)
+        .then(() => setSyncStatus("synced"))
+        .catch(() => setSyncStatus("offline"));
+      return;
+    }
+
+    // Merge remote state: remote is authoritative for most fields,
+    // but we preserve any in-flight local edits that haven't saved yet.
+    const localMap = Object.fromEntries(tasks.map(t => [t.id, t]));
+    tasks = remote.map(t => ({
+      // Start with remote as base
+      ...t,
+      // Carry over any local-only fields that remote might not have yet
+      dependsOn: t.dependsOn || (localMap[t.id]?.dependsOn) || [],
+    }));
+
+    // Mirror to localStorage so offline fallback stays current
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+    setSyncStatus("synced");
+    renderAll();
+  }, err => {
+    console.error("Firebase read error:", err);
+    setSyncStatus("offline");
+  });
+
+  // Monitor connection state
+  db.ref(".info/connected").on("value", snap => {
+    if (!snap.val()) setSyncStatus("offline");
+  });
 }
 
 init();
