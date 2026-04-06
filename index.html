@@ -475,45 +475,6 @@
     .cd-pbar { height: 100%; border-radius: 3px; transition: width 0.4s; }
 
     /* ==============================================================
-       CONFLICT PANEL
-    ============================================================== */
-    .conflict-panel {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      overflow: hidden;
-    }
-    .conflict-panel.has-conflicts { border-color: var(--overdue-border); }
-    .conflict-header {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 9px 14px;
-      cursor: pointer;
-      user-select: none;
-      font-size: 13px;
-      font-weight: 600;
-    }
-    .conflict-header:hover { background: var(--surface2); }
-    .conflict-header .ch-toggle { font-size: 10px; transition: transform 0.15s; }
-    .conflict-panel.collapsed .ch-toggle { transform: rotate(-90deg); }
-    .conflict-body { padding: 0 14px 12px; display: flex; flex-direction: column; gap: 8px; }
-    .conflict-panel.collapsed .conflict-body { display: none; }
-    .conflict-day {
-      border-radius: 6px;
-      padding: 8px 12px;
-      border: 1px solid var(--border);
-      cursor: pointer;
-    }
-    .conflict-day:hover { border-color: var(--accent); }
-    .conflict-day-header { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; font-weight: 600; font-size: 12px; }
-    .conflict-tag { font-size: 10px; padding: 1px 6px; border-radius: 8px; font-weight: 600; }
-    .ct-overload { background: var(--overdue-bg); color: var(--overdue-border); border: 1px solid var(--overdue-border); }
-    .ct-clash    { background: var(--rolled-bg); color: var(--wedding); border: 1px solid var(--rolled-border); }
-    .conflict-tasks { display: flex; flex-wrap: wrap; gap: 4px; }
-    .conf-task-chip { font-size: 11px; padding: 1px 7px; border-radius: 6px; }
-
-    /* ==============================================================
        EFFORT BARS (calendar sidebar)
     ============================================================== */
     .effort-bar-wrap { margin-top: 3px; height: 4px; background: var(--surface2); border-radius: 2px; overflow: hidden; }
@@ -692,15 +653,6 @@
        MAIN CONTENT
   ============================================================ -->
   <main class="main-content">
-    <!-- Conflict & overload detector -->
-    <div class="conflict-panel" id="conflict-panel">
-      <div class="conflict-header" onclick="toggleConflictPanel()">
-        <span class="ch-toggle">▾</span>
-        <span id="conflict-title">Checking schedule…</span>
-      </div>
-      <div class="conflict-body" id="conflict-body"></div>
-    </div>
-
     <!-- Summary cards -->
     <div class="summary-cards" id="summary-cards"></div>
 
@@ -1243,7 +1195,6 @@ function runRollover() {
 
 function renderAll() {
   renderCountdown();
-  renderConflicts();
   renderCards();
   renderTodayFocus();
   renderCal();
@@ -1755,79 +1706,6 @@ function renderCountdown() {
         <div class="cd-pbar-wrap"><div class="cd-pbar" style="width:${taskPct}%;background:${taskPct>=75?"var(--low)":taskPct>=40?"var(--medium)":"var(--high)"}"></div></div>
       </div>
     </div>`;
-}
-
-// ==============================================================
-// SECTION 6G: CONFLICT DETECTOR
-// ==============================================================
-// A conflict is any future incomplete day where:
-//   (a) CLASH  – has both Wedding AND Moving high-priority incomplete tasks, OR
-//   (b) OVERLOAD – total scheduled effort-hours exceeds the day's budget
-
-let conflictPanelCollapsed = false;
-
-function renderConflicts() {
-  const today = APP_TODAY;
-  const conflicts = [];
-
-  for (const ds of getAllDates()) {
-    if (ds < today) continue;
-    const dayTasks = tasks.filter(t => t.date===ds && !t.completed);
-    if (!dayTasks.length) continue;
-
-    const wHigh = dayTasks.filter(t => t.priority==="High" && (t.project==="Wedding"||t.project==="Both"));
-    const mHigh = dayTasks.filter(t => t.priority==="High" && (t.project==="Moving"||t.project==="Both"));
-    const used   = dayTasks.reduce((s,t)=>s+(EFFORT_HOURS[t.effort]||1),0);
-    const budget = dayBudget(ds);
-
-    const clash    = wHigh.length > 0 && mHigh.length > 0;
-    const overload = used > budget;
-
-    if (clash || overload) {
-      conflicts.push({ ds, clash, overload, used, budget, wHigh, mHigh, dayTasks });
-    }
-  }
-
-  const panel = document.getElementById("conflict-panel");
-  const titleEl = document.getElementById("conflict-title");
-  const bodyEl  = document.getElementById("conflict-body");
-
-  if (!conflicts.length) {
-    panel.classList.remove("has-conflicts");
-    titleEl.innerHTML = `✅ No schedule conflicts detected`;
-    bodyEl.innerHTML  = "";
-    if(!conflictPanelCollapsed) panel.classList.add("collapsed");
-    return;
-  }
-
-  panel.classList.add("has-conflicts");
-  if (!conflictPanelCollapsed) panel.classList.remove("collapsed");
-  titleEl.innerHTML = `⚠️ ${conflicts.length} schedule conflict${conflicts.length!==1?"s":""} — click to review`;
-
-  bodyEl.innerHTML = conflicts.map(c => {
-    const tags = [
-      c.clash    ? `<span class="conflict-tag ct-clash">Wedding + Moving clash</span>` : "",
-      c.overload ? `<span class="conflict-tag ct-overload">${c.used.toFixed(1)}h / ${c.budget}h budget</span>` : "",
-    ].filter(Boolean).join(" ");
-
-    const showTasks = [...new Set([...c.wHigh, ...c.mHigh, ...c.dayTasks])].slice(0, 5);
-    const chips = showTasks.map(t =>
-      `<span class="conf-task-chip badge badge-${t.project.toLowerCase()}">${pIcon(t.priority)} ${esc(t.task)}</span>`
-    ).join("");
-    const more = c.dayTasks.length > 5 ? `<span style="font-size:11px;color:var(--text2)">+${c.dayTasks.length-5} more</span>` : "";
-
-    return `<div class="conflict-day" onclick="filterByDate('${c.ds}')">
-      <div class="conflict-day-header">
-        <strong>${fmtFull(c.ds)}</strong> ${tags}
-      </div>
-      <div class="conflict-tasks">${chips}${more}</div>
-    </div>`;
-  }).join("");
-}
-
-function toggleConflictPanel() {
-  conflictPanelCollapsed = !conflictPanelCollapsed;
-  document.getElementById("conflict-panel").classList.toggle("collapsed", conflictPanelCollapsed);
 }
 
 // ==============================================================
